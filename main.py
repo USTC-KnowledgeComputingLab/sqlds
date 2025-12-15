@@ -25,13 +25,18 @@ class Ideas(Base):
 
 
 def main():
+    if len(sys.argv) != 2:
+        print(f"Usage: {sys.argv[0]} <database-addr>")
+        sys.exit(1)
+    addr = sys.argv[1]
+
     logger.remove()
     logger.add(
         sys.stderr,
         format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <5}</level> | <cyan>{message}</cyan>",
     )
 
-    engine = create_engine("sqlite:///./data.db")
+    engine = create_engine(addr)
     session = sessionmaker(engine)
     logger.info("Engine initialized")
 
