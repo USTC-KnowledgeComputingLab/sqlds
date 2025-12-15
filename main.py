@@ -1,10 +1,10 @@
+import sys
 import asyncio
 from loguru import logger
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy import select
 from sqlalchemy import Integer, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-
 from apyds import Search
 from apyds_bnf import parse, unparse
 
@@ -26,6 +26,12 @@ class Ideas(Base):
 
 
 async def main():
+    logger.remove()
+    logger.add(
+        sys.stderr,
+        format="<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <5}</level> | <cyan>{message}</cyan>",
+    )
+
     engine = create_async_engine("sqlite+aiosqlite:///./data.db")
     session = async_sessionmaker(engine)
     logger.info("Engine initialized and session factory created")
@@ -40,26 +46,31 @@ async def main():
     while True:
         begin = asyncio.get_event_loop().time()
         async with session() as sess:
-            query = await sess.execute(select(Facts).where(Facts.id > count))
-            input = list(query.scalars())
-            logger.info("Loaded {n} new data", n=len(input))
-            for i in input:
+            input = await sess.execute(select(Facts).where(Facts.id > count))
+            for i in input.scalars():
                 count = max(count, i.id)
                 search.add(parse(i.data))
                 logger.debug("input: {data}", data=i.data)
-            output = []
-            search.execute(lambda x: output.append(x))
-            logger.info("Generated {n} new data", n=len(output))
-            for o in output:
-                logger.debug("output: {data}", data=unparse(f"{o}"))
-            sess.add_all(Facts(data=unparse(f"{o}")) for o in output)
-            sess.add_all(Ideas(data=unparse(f"--\n{o[0]}")) for o in output if len(o) != 0)
+
+            def handler(o):
+                fact = unparse(f"{o}")
+                sess.add(Facts(data=fact))
+                logger.debug("output: {fact}", fact=fact)
+                if len(o) != 0:
+                    idea = unparse(f"--\n{o[0]}")
+                    sess.add(Ideas(data=idea))
+                    logger.debug("idea output: {idea}", idea=idea)
+                return False
+
+            number = search.execute(handler)
             await sess.commit()
         end = asyncio.get_event_loop().time()
         duration = end - begin
-        delay = max(0, 1 - duration)
-        logger.info("Cycle timing: duration={duration} delay={delay}", duration=duration, delay=delay)
-        await asyncio.sleep(delay)
+        logger.info("duration: {duration:0.3f}s", duration=duration)
+        if number == 0:
+            delay = max(0, 1 - duration)
+            logger.info("sleeping: {delay:0.3f}s", delay=delay)
+            await asyncio.sleep(delay)
 
     await engine.dispose()
 
