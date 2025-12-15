@@ -18,7 +18,11 @@ async def main(addr):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print(f"Usage: {sys.argv[0]} <database-addr>")
+    if len(sys.argv) == 1:
+        addr = "sqlite+aiosqlite:///:memory:"
+    elif len(sys.argv) == 2:
+        addr = sys.argv[1]
+    else:
+        print(f"Usage: {sys.argv[0]} [<database-addr>]")
         sys.exit(1)
-    asyncio.run(main(sys.argv[1]))
+    asyncio.run(main(addr))
