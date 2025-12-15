@@ -1,3 +1,5 @@
+import asyncio
+from collections import defaultdict
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from sqlalchemy.exc import IntegrityError
@@ -29,9 +31,10 @@ async def initialize_database(addr: str) -> tuple[AsyncEngine, async_sessionmake
     return engine, session
 
 
-async def insert_or_ignore(sess: AsyncSession, model, data) -> None:
-    try:
-        async with sess.begin_nested():
-            sess.add(model(data=data))
-    except IntegrityError:
-        pass
+async def insert_or_ignore(sess: AsyncSession, model, data, locks=defaultdict(lambda: asyncio.Lock())) -> None:
+    async with locks[id(sess)]:
+        try:
+            async with sess.begin_nested():
+                sess.add(model(data=data))
+        except IntegrityError:
+            pass
