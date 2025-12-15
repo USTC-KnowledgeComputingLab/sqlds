@@ -1,10 +1,10 @@
 import sys
 import asyncio
-from orm import initialize_database
-from ds import main as ds
-from egg import main as egg
-from input import main as input
-from output import main as output
+from .orm import initialize_database
+from .ds import main as ds
+from .egg import main as egg
+from .input import main as input
+from .output import main as output
 
 
 async def main(addr):

@@ -1,7 +1,7 @@
 import sys
 import asyncio
-from orm import initialize_database, insert_or_ignore, Facts, Ideas
-from poly import Poly
+from .orm import initialize_database, insert_or_ignore, Facts, Ideas
+from .poly import Poly
 
 
 async def main(addr, engine=None, session=None):

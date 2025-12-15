@@ -1,9 +1,9 @@
 import sys
 import asyncio
 from sqlalchemy import select
-from orm import initialize_database, insert_or_ignore, Facts, Ideas
-from egraph import Search
-from poly import Poly
+from .orm import initialize_database, insert_or_ignore, Facts, Ideas
+from .egraph import Search
+from .poly import Poly
 
 
 async def main(addr, engine=None, session=None):

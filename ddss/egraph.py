@@ -2,7 +2,7 @@ from __future__ import annotations
 import typing
 import egglog
 from apyds import Term, List
-from poly import Poly
+from .poly import Poly
 
 
 class EGraphTerm(egglog.Expr):
