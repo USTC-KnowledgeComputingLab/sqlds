@@ -23,12 +23,7 @@ class Ideas(Base):
     data: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
 
 
-def main():
-    if len(sys.argv) != 2:
-        print(f"Usage: {sys.argv[0]} <database-addr>")
-        sys.exit(1)
-    addr = sys.argv[1]
-
+def main(addr):
     engine = create_engine(addr)
     session = sessionmaker(engine)
 
@@ -74,4 +69,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) != 2:
+        print(f"Usage: {sys.argv[0]} <database-addr>")
+        sys.exit(1)
+    main(sys.argv[1])
