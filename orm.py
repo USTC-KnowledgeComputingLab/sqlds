@@ -1,6 +1,8 @@
-from sqlalchemy import create_engine, Integer, Text
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import sessionmaker, DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import Integer, Text
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
@@ -19,17 +21,17 @@ class Ideas(Base):
     data: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
 
 
-def initialize_database(addr):
-    engine = create_engine(addr)
-    session = sessionmaker(engine)
-
-    Base.metadata.create_all(engine)
+async def initialize_database(addr: str) -> tuple[AsyncEngine, async_sessionmaker[AsyncSession]]:
+    engine = create_async_engine(addr)
+    session = async_sessionmaker(engine)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     return engine, session
 
 
-def insert_or_ignore(sess, model, data):
+async def insert_or_ignore(sess: AsyncSession, model, data) -> None:
     try:
-        with sess.begin_nested():
+        async with sess.begin_nested():
             sess.add(model(data=data))
     except IntegrityError:
         pass

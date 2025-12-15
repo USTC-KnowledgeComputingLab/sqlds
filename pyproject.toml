@@ -5,6 +5,7 @@ description = "Distributed Deductive System Sorts"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "aiosqlite>=0.22.0",
     "apyds>=0.0.7",
     "apyds-bnf>=0.0.7",
     "cloudpickle>=3.1.2",
