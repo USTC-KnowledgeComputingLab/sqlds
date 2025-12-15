@@ -7,8 +7,8 @@ from .input import main as input
 from .output import main as output
 
 
-async def main(addr):
-    engine, session = await initialize_database(addr)
+async def main(addr, recreate=False):
+    engine, session = await initialize_database(addr, recreate)
     await asyncio.gather(
         ds(addr, engine, session),
         egg(addr, engine, session),
@@ -19,10 +19,12 @@ async def main(addr):
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        addr = "sqlite+aiosqlite:///:memory:"
+        addr = "sqlite+aiosqlite:////tmp/ddss.db"
+        recreate = True
     elif len(sys.argv) == 2:
         addr = sys.argv[1]
+        recreate = False
     else:
         print(f"Usage: {sys.argv[0]} [<database-addr>]")
         sys.exit(1)
-    asyncio.run(main(addr))
+    asyncio.run(main(addr, recreate))

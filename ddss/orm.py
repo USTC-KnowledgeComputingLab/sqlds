@@ -23,10 +23,14 @@ class Ideas(Base):
     data: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
 
 
-async def initialize_database(addr: str) -> tuple[AsyncEngine, async_sessionmaker[AsyncSession]]:
+async def initialize_database(
+    addr: str, recreate: bool = False
+) -> tuple[AsyncEngine, async_sessionmaker[AsyncSession]]:
     engine = create_async_engine(addr)
     session = async_sessionmaker(engine)
     async with engine.begin() as conn:
+        if recreate:
+            await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     return engine, session
 
