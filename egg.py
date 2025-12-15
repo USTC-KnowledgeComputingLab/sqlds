@@ -6,8 +6,9 @@ from egraph import Search
 from poly import Poly
 
 
-async def main(addr):
-    engine, session = await initialize_database(addr)
+async def main(addr, engine=None, session=None):
+    if engine is None or session is None:
+        engine, session = await initialize_database(addr)
 
     search = Search()
     pool = []
@@ -36,12 +37,7 @@ async def main(addr):
         duration = end - begin
         if count == 0:
             delay = max(0, 1 - duration)
-            try:
-                await asyncio.sleep(delay)
-            except asyncio.CancelledError:
-                break
-
-    await engine.dispose()
+            await asyncio.sleep(delay)
 
 
 if __name__ == "__main__":
