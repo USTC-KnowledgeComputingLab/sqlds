@@ -1,6 +1,6 @@
 [project]
 name = "sqlds"
-version = "0.0.1"
+version = "0.0.2"
 description = "use DS with SQL"
 readme = "README.md"
 requires-python = ">=3.13"
