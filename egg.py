@@ -1,12 +1,10 @@
 from __future__ import annotations
 import sys
 import time
-from sqlalchemy import create_engine, Integer, Text
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import sessionmaker, DeclarativeBase, Mapped, mapped_column
 import egglog
 from apyds import Rule, Term, List
 from apyds_bnf import parse, unparse
+from orm import initialize_database, insert_or_ignore, Facts, Ideas
 
 
 class EGraphTerm(egglog.Expr):
@@ -92,27 +90,8 @@ class Search:
                 yield unparse(result)
 
 
-class Base(DeclarativeBase):
-    pass
-
-
-class Facts(Base):
-    __tablename__ = "facts"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    data: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
-
-
-class Ideas(Base):
-    __tablename__ = "ideas"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    data: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
-
-
 def main(addr):
-    engine = create_engine(addr)
-    session = sessionmaker(engine)
-
-    Base.metadata.create_all(engine)
+    engine, session = initialize_database(addr)
 
     search = Search()
     pool = []
@@ -127,21 +106,13 @@ def main(addr):
             for i in query:
                 max_fact = max(max_fact, i.id)
                 search.add(i.data)
-
             query = sess.query(Ideas).filter(Ideas.id > max_idea)
             for i in query:
                 max_idea = max(max_idea, i.id)
                 pool.append(i.data)
-
             for i in pool:
                 for o in search.execute(i):
-                    try:
-                        with sess.begin_nested():
-                            sess.add(Facts(data=o))
-                        count += 1
-                    except IntegrityError:
-                        pass
-
+                    insert_or_ignore(sess, Facts, o)
             sess.commit()
 
         end = time.time()
