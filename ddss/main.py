@@ -11,11 +11,14 @@ from .output import main as output
 async def main(addr):
     engine, session = await initialize_database(addr)
     try:
-        await asyncio.gather(
-            ds(addr, engine, session),
-            egg(addr, engine, session),
-            input(addr, engine, session),
-            output(addr, engine, session),
+        await asyncio.wait(
+            [
+                asyncio.create_task(ds(addr, engine, session)),
+                asyncio.create_task(egg(addr, engine, session)),
+                asyncio.create_task(input(addr, engine, session)),
+                asyncio.create_task(output(addr, engine, session)),
+            ],
+            return_when=asyncio.FIRST_COMPLETED,
         )
     except asyncio.CancelledError:
         pass

@@ -19,8 +19,8 @@ async def main(addr, engine=None, session=None):
                     data = await prompt.prompt_async("input: ")
                 if data.strip() == "":
                     continue
-            except EOFError:
-                break
+            except (EOFError, KeyboardInterrupt):
+                raise asyncio.CancelledError()
             try:
                 parse(data)
             except Exception as e:
