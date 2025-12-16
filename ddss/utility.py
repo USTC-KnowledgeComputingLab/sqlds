@@ -3,7 +3,7 @@ from apyds import Rule
 
 def rule_get_idea(data):
     if not data.startswith("--"):
-        return f"----\n{data.splitlines()[0]}"
+        return f"----\n{data.splitlines()[0]}\n"
     return None
 
 
@@ -27,4 +27,4 @@ def rule_get_equality(data):
 
 
 def build_equality_rule(lhs: str, rhs: str) -> str:
-    return f"----\n(binary == {lhs} {rhs})"
+    return f"----\n(binary == {lhs} {rhs})\n"
