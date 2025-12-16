@@ -23,14 +23,29 @@ async def main(addr):
         await engine.dispose()
 
 
+sqlalchemy_driver = {
+    "sqlite": "aiosqlite",
+    "mysql": "aiomysql",
+    "mariadb": "aiomysql",
+}
+
+
 def cli():
     if len(sys.argv) == 1:
         file = tempfile.NamedTemporaryFile()
-        addr = f"sqlite+aiosqlite:///{file.name}"
+        addr = f"sqlite:///{file.name}"
     elif len(sys.argv) == 2 and sys.argv[1] not in ["--help", "-help", "-h", "/help", "/h", "/?"]:
         addr = sys.argv[1]
     else:
         print(f"Usage: {sys.argv[0]} [<database-addr>]")
+        sys.exit(1)
+    for key, value in sqlalchemy_driver.items():
+        if addr.startswith(f"{key}://"):
+            addr = addr.replace(f"{key}://", f"{key}+{value}://")
+        if addr.startswith(f"{key}+{value}://"):
+            break
+    else:
+        print(f"Unsupported database address: {addr}")
         sys.exit(1)
     asyncio.run(main(addr))
 
