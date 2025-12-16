@@ -18,12 +18,12 @@ async def main(addr, engine=None, session=None):
             begin = asyncio.get_running_loop().time()
 
             async with session() as sess:
-                for i in await sess.scalars(select(Facts).where(Facts.id > max_fact)):
-                    max_fact = max(max_fact, i.id)
-                    print("fact:", Poly(dsp=i.data).dsp)
                 for i in await sess.scalars(select(Ideas).where(Ideas.id > max_idea)):
                     max_idea = max(max_idea, i.id)
                     print("idea:", Poly(dsp=i.data).dsp)
+                for i in await sess.scalars(select(Facts).where(Facts.id > max_fact)):
+                    max_fact = max(max_fact, i.id)
+                    print("fact:", Poly(dsp=i.data).dsp)
                 await sess.commit()
 
             end = asyncio.get_running_loop().time()

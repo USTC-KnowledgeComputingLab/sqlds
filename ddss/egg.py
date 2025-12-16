@@ -21,12 +21,12 @@ async def main(addr, engine=None, session=None):
             begin = asyncio.get_running_loop().time()
 
             async with session() as sess:
-                for i in await sess.scalars(select(Facts).where(Facts.id > max_fact)):
-                    max_fact = max(max_fact, i.id)
-                    search.add(Poly(dsp=i.data))
                 for i in await sess.scalars(select(Ideas).where(Ideas.id > max_idea)):
                     max_idea = max(max_idea, i.id)
                     pool.append(Poly(dsp=i.data))
+                for i in await sess.scalars(select(Facts).where(Facts.id > max_fact)):
+                    max_fact = max(max_fact, i.id)
+                    search.add(Poly(dsp=i.data))
                 tasks = []
                 for i in pool:
                     for o in search.execute(i):
