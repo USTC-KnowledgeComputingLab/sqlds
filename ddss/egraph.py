@@ -1,8 +1,16 @@
 from __future__ import annotations
 import typing
 import egglog
-from apyds import Rule, Term, List
-from .utility import rule_is_fact, rule_get_fact, rule_is_equality, rule_get_equality, build_equality_rule
+from apyds import Term, List
+from .utility import (
+    rule_is_fact,
+    rule_get_fact,
+    rule_is_equality,
+    rule_get_equality,
+    equality_build_rule,
+    equality_build_term,
+    term_build_rule,
+)
 
 
 class EGraphTerm(egglog.Expr):
@@ -20,6 +28,14 @@ class Search:
         self.egraph = egglog.EGraph()
         self.terms = set()
         self.facts = set()
+        self.pairs = set()
+
+    def build_pairs(self) -> None:
+        for lhs in self.terms:
+            for rhs in self.terms:
+                if self._get_equality(lhs, rhs):
+                    equality = Term(equality_build_term(lhs, rhs))
+                    self.pairs.add(equality)
 
     def _ast_from_term(self, data: Term) -> EGraphTerm:
         term = data.term
@@ -71,16 +87,12 @@ class Search:
             return
         lhs, rhs = rule_get_equality(data)
         if self._get_equality(lhs, rhs):
-            yield build_equality_rule(lhs, rhs)
-        for lhss in self.terms:
-            for rhss in self.terms:
-                if self._get_equality(lhss, rhss):
-                    target = Rule(build_equality_rule(lhss, rhss)).conclusion
-                    query = Rule(data).conclusion
-                    unification = target @ query
-                    if unification is not None:
-                        result = target.ground(unification, scope="1")
-                        yield f"----\n{result}\n"
+            yield equality_build_rule(lhs, rhs)
+        query = Term(rule_get_fact(data))
+        for target in self.pairs:
+            if unification := target @ query:
+                result = target.ground(unification, scope="1")
+                yield term_build_rule(result)
 
     def _execute_fact(self, data: str) -> typing.Iterator[str]:
         if not rule_is_fact(data):
@@ -90,12 +102,8 @@ class Search:
             if self._get_equality(idea, fact):
                 yield data
         for fact in self.facts:
-            for lhss in self.terms:
-                for rhss in self.terms:
-                    if self._get_equality(lhss, rhss):
-                        target = Rule(build_equality_rule(lhss, rhss)).conclusion
-                        query = Term(f"(binary == {idea} {fact})")
-                        unification = target @ query
-                        if unification is not None:
-                            result = target.ground(unification, scope="1")
-                            yield f"----\n{Term(result).term[2]}\n"
+            query = Term(equality_build_term(idea, fact))
+            for target in self.pairs:
+                if unification := target @ query:
+                    result = target.ground(unification, scope="1")
+                    yield term_build_rule(result.term[2])

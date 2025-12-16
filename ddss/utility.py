@@ -1,4 +1,4 @@
-from apyds import Rule
+from apyds import Term
 
 
 def rule_get_idea(data):
@@ -20,11 +20,23 @@ def rule_is_equality(data):
 
 
 def rule_get_equality(data):
-    term = Rule(data).conclusion
+    return term_get_equality(rule_get_fact(data))
+
+
+def term_get_equality(data):
+    term = Term(data)
     lhs = str(term.term[2])
     rhs = str(term.term[3])
     return lhs, rhs
 
 
-def build_equality_rule(lhs: str, rhs: str) -> str:
-    return f"----\n(binary == {lhs} {rhs})\n"
+def equality_build_rule(lhs: str, rhs: str) -> str:
+    return term_build_rule(equality_build_term(lhs, rhs))
+
+
+def equality_build_term(lhs: str, rhs: str) -> str:
+    return f"(binary == {lhs} {rhs})"
+
+
+def term_build_rule(data: str) -> str:
+    return f"----\n{data}\n"
