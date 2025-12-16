@@ -28,9 +28,15 @@ async def main(addr, engine=None, session=None):
                     max_fact = max(max_fact, i.id)
                     search.add(Poly(dsp=i.data))
                 tasks = []
+                next_pool = []
                 for i in pool:
                     for o in search.execute(i):
                         tasks.append(asyncio.create_task(insert_or_ignore(sess, Facts, o.dsp)))
+                        if o.ds == i.ds:
+                            break
+                    else:
+                        next_pool.append(i)
+                pool = next_pool
                 await asyncio.gather(*tasks)
                 await sess.commit()
 
