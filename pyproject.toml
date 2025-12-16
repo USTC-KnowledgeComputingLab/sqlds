@@ -1,6 +1,6 @@
 [project]
 name = "ddss"
-version = "0.0.13"
+version = "0.0.14"
 description = "Distributed Deductive System Sorts"
 license = "AGPL-3.0-or-later"
 readme = "README.md"
