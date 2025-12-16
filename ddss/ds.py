@@ -20,14 +20,14 @@ async def main(addr, engine=None, session=None):
             async with session() as sess:
                 for i in await sess.scalars(select(Facts).where(Facts.id > max_fact)):
                     max_fact = max(max_fact, i.id)
-                    search.add(Poly(dsp=i.data).ds)
+                    search.add(Poly(ds=i.data).ds)
                 tasks = []
 
                 def handler(rule):
                     poly = Poly(rule=rule)
-                    tasks.append(asyncio.create_task(insert_or_ignore(sess, Facts, poly.dsp)))
+                    tasks.append(asyncio.create_task(insert_or_ignore(sess, Facts, poly.ds)))
                     if idea := poly.idea:
-                        tasks.append(asyncio.create_task(insert_or_ignore(sess, Ideas, idea.dsp)))
+                        tasks.append(asyncio.create_task(insert_or_ignore(sess, Ideas, idea.ds)))
                     return False
 
                 count = search.execute(handler)

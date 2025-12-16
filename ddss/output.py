@@ -1,6 +1,7 @@
 import sys
 import asyncio
 from sqlalchemy import select
+from apyds_bnf import unparse
 from .orm import initialize_database, Facts, Ideas
 from .poly import Poly
 
@@ -20,10 +21,10 @@ async def main(addr, engine=None, session=None):
             async with session() as sess:
                 for i in await sess.scalars(select(Ideas).where(Ideas.id > max_idea)):
                     max_idea = max(max_idea, i.id)
-                    print("idea:", Poly(dsp=i.data).dsp)
+                    print("idea:", unparse(Poly(ds=i.data).ds))
                 for i in await sess.scalars(select(Facts).where(Facts.id > max_fact)):
                     max_fact = max(max_fact, i.id)
-                    print("fact:", Poly(dsp=i.data).dsp)
+                    print("fact:", unparse(Poly(ds=i.data).ds))
                 await sess.commit()
 
             end = asyncio.get_running_loop().time()

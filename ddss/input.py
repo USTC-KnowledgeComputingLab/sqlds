@@ -22,15 +22,15 @@ async def main(addr, engine=None, session=None):
             except (EOFError, KeyboardInterrupt):
                 raise asyncio.CancelledError()
             try:
-                parse(data)
+                parsed = parse(data)
             except Exception as e:
                 print(f"error: {e}")
                 continue
             async with session() as sess:
-                poly = Poly(dsp=data)
-                await insert_or_ignore(sess, Facts, poly.dsp)
+                poly = Poly(ds=parsed)
+                await insert_or_ignore(sess, Facts, poly.ds)
                 if idea := poly.idea:
-                    await insert_or_ignore(sess, Ideas, idea.dsp)
+                    await insert_or_ignore(sess, Ideas, idea.ds)
                 await sess.commit()
     except asyncio.CancelledError:
         pass
