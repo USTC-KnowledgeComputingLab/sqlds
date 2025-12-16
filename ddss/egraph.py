@@ -31,6 +31,7 @@ class Search:
     def __init__(self) -> None:
         self.egraph = egglog.EGraph()
         self.terms = set()
+        self.facts = set()
 
     def _is_equality(self, data: Poly) -> bool:
         return data.ds.startswith("----\n(binary == ")
@@ -61,6 +62,10 @@ class Search:
         return Poly(ds=f"----\n(binary == {lhs} {rhs})")
 
     def add(self, data: Poly) -> None:
+        self._add_expr(data)
+        self._add_fact(data)
+
+    def _add_expr(self, data: Poly) -> None:
         if not self._is_equality(data):
             return
         lhs, rhs = self._extract_lhs_rhs(data)
@@ -68,7 +73,18 @@ class Search:
         self.terms.add(rhs)
         self._set_equality(lhs, rhs)
 
+    def _add_fact(self, data: Poly) -> None:
+        if len(data.rule) != 0:
+            return 0
+        fact = str(data.rule.conclusion)
+        self.terms.add(fact)
+        self.facts.add(fact)
+
     def execute(self, data: Poly) -> typing.Iterator[Poly]:
+        yield from self._execute_expr(data)
+        yield from self._execute_fact(data)
+
+    def _execute_expr(self, data: Poly) -> typing.Iterator[Poly]:
         if not self._is_equality(data):
             return
         lhs, rhs = self._extract_lhs_rhs(data)
@@ -81,3 +97,11 @@ class Search:
         if rhs.startswith("`"):
             for result in self._search_equality(lhs):
                 yield self._build_equality(lhs, result)
+
+    def _execute_fact(self, data: Poly) -> typing.Iterator[Poly]:
+        if len(data.rule) != 0:
+            return
+        for fact in self.facts:
+            if self._get_equality(str(data.rule.conclusion), fact):
+                yield data
+                return
