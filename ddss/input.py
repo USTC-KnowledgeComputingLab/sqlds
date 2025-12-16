@@ -36,7 +36,6 @@ async def main(addr, engine=None, session=None):
         pass
     finally:
         await engine.dispose()
-        await engine.dispose()
 
 
 if __name__ == "__main__":
