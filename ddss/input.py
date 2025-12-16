@@ -8,21 +8,25 @@ async def main(addr, engine=None, session=None):
     if engine is None or session is None:
         engine, session = await initialize_database(addr)
 
-    while True:
-        try:
-            data = await asyncio.get_running_loop().run_in_executor(None, input)
-            if data.strip() == "":
-                continue
-        except EOFError:
-            break
-        async with session() as sess:
-            poly = Poly(dsp=data)
-            await insert_or_ignore(sess, Facts, poly.dsp)
-            if idea := poly.idea:
-                await insert_or_ignore(sess, Ideas, idea.dsp)
-            await sess.commit()
-
-    await engine.dispose()
+    try:
+        while True:
+            try:
+                data = await asyncio.get_running_loop().run_in_executor(None, input)
+                if data.strip() == "":
+                    continue
+            except EOFError:
+                break
+            async with session() as sess:
+                poly = Poly(dsp=data)
+                await insert_or_ignore(sess, Facts, poly.dsp)
+                if idea := poly.idea:
+                    await insert_or_ignore(sess, Ideas, idea.dsp)
+                await sess.commit()
+    except asyncio.CancelledError:
+        pass
+    finally:
+        await engine.dispose()
+        await engine.dispose()
 
 
 if __name__ == "__main__":

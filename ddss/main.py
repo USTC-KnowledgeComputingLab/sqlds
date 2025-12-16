@@ -9,12 +9,17 @@ from .output import main as output
 
 async def main(addr, recreate=False):
     engine, session = await initialize_database(addr, recreate)
-    await asyncio.gather(
-        ds(addr, engine, session),
-        egg(addr, engine, session),
-        input(addr, engine, session),
-        output(addr, engine, session),
-    )
+    try:
+        await asyncio.gather(
+            ds(addr, engine, session),
+            egg(addr, engine, session),
+            input(addr, engine, session),
+            output(addr, engine, session),
+        )
+    except asyncio.CancelledError:
+        pass
+    finally:
+        await engine.dispose()
 
 
 def cli():

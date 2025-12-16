@@ -10,36 +10,39 @@ async def main(addr, engine=None, session=None):
     if engine is None or session is None:
         engine, session = await initialize_database(addr)
 
-    search = Search()
-    max_fact = -1
+    try:
+        search = Search()
+        max_fact = -1
 
-    while True:
-        begin = asyncio.get_running_loop().time()
+        while True:
+            begin = asyncio.get_running_loop().time()
 
-        async with session() as sess:
-            for i in await sess.scalars(select(Facts).where(Facts.id > max_fact)):
-                max_fact = max(max_fact, i.id)
-                search.add(Poly(dsp=i.data).ds)
-            tasks = []
+            async with session() as sess:
+                for i in await sess.scalars(select(Facts).where(Facts.id > max_fact)):
+                    max_fact = max(max_fact, i.id)
+                    search.add(Poly(dsp=i.data).ds)
+                tasks = []
 
-            def handler(rule):
-                poly = Poly(rule=rule)
-                tasks.append(asyncio.create_task(insert_or_ignore(sess, Facts, poly.dsp)))
-                if idea := poly.idea:
-                    tasks.append(asyncio.create_task(insert_or_ignore(sess, Ideas, idea.dsp)))
-                return False
+                def handler(rule):
+                    poly = Poly(rule=rule)
+                    tasks.append(asyncio.create_task(insert_or_ignore(sess, Facts, poly.dsp)))
+                    if idea := poly.idea:
+                        tasks.append(asyncio.create_task(insert_or_ignore(sess, Ideas, idea.dsp)))
+                    return False
 
-            count = search.execute(handler)
-            await asyncio.gather(*tasks)
-            await sess.commit()
+                count = search.execute(handler)
+                await asyncio.gather(*tasks)
+                await sess.commit()
 
-        end = asyncio.get_running_loop().time()
-        duration = end - begin
-        if count == 0:
-            delay = max(0, 0.1 - duration)
-            await asyncio.sleep(delay)
-
-    await engine.dispose()
+            end = asyncio.get_running_loop().time()
+            duration = end - begin
+            if count == 0:
+                delay = max(0, 0.1 - duration)
+                await asyncio.sleep(delay)
+    except asyncio.CancelledError:
+        pass
+    finally:
+        await engine.dispose()
 
 
 if __name__ == "__main__":

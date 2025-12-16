@@ -10,34 +10,39 @@ async def main(addr, engine=None, session=None):
     if engine is None or session is None:
         engine, session = await initialize_database(addr)
 
-    search = Search()
-    pool = []
-    max_fact = -1
-    max_idea = -1
+    try:
+        search = Search()
+        pool = []
+        max_fact = -1
+        max_idea = -1
 
-    while True:
-        count = 0
-        begin = asyncio.get_running_loop().time()
+        while True:
+            count = 0
+            begin = asyncio.get_running_loop().time()
 
-        async with session() as sess:
-            for i in await sess.scalars(select(Facts).where(Facts.id > max_fact)):
-                max_fact = max(max_fact, i.id)
-                search.add(Poly(dsp=i.data))
-            for i in await sess.scalars(select(Ideas).where(Ideas.id > max_idea)):
-                max_idea = max(max_idea, i.id)
-                pool.append(Poly(dsp=i.data))
-            tasks = []
-            for i in pool:
-                for o in search.execute(i):
-                    tasks.append(asyncio.create_task(insert_or_ignore(sess, Facts, o.dsp)))
-            await asyncio.gather(*tasks)
-            await sess.commit()
+            async with session() as sess:
+                for i in await sess.scalars(select(Facts).where(Facts.id > max_fact)):
+                    max_fact = max(max_fact, i.id)
+                    search.add(Poly(dsp=i.data))
+                for i in await sess.scalars(select(Ideas).where(Ideas.id > max_idea)):
+                    max_idea = max(max_idea, i.id)
+                    pool.append(Poly(dsp=i.data))
+                tasks = []
+                for i in pool:
+                    for o in search.execute(i):
+                        tasks.append(asyncio.create_task(insert_or_ignore(sess, Facts, o.dsp)))
+                await asyncio.gather(*tasks)
+                await sess.commit()
 
-        end = asyncio.get_running_loop().time()
-        duration = end - begin
-        if count == 0:
-            delay = max(0, 0.1 - duration)
-            await asyncio.sleep(delay)
+            end = asyncio.get_running_loop().time()
+            duration = end - begin
+            if count == 0:
+                delay = max(0, 0.1 - duration)
+                await asyncio.sleep(delay)
+    except asyncio.CancelledError:
+        pass
+    finally:
+        await engine.dispose()
 
 
 if __name__ == "__main__":
