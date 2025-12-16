@@ -1,5 +1,6 @@
 import sys
 import asyncio
+import tempfile
 from .orm import initialize_database
 from .ds import main as ds
 from .egg import main as egg
@@ -7,8 +8,8 @@ from .input import main as input
 from .output import main as output
 
 
-async def main(addr, recreate=False):
-    engine, session = await initialize_database(addr, recreate)
+async def main(addr):
+    engine, session = await initialize_database(addr)
     try:
         await asyncio.gather(
             ds(addr, engine, session),
@@ -24,15 +25,14 @@ async def main(addr, recreate=False):
 
 def cli():
     if len(sys.argv) == 1:
-        addr = "sqlite+aiosqlite:////tmp/ddss.db"
-        recreate = True
+        file = tempfile.NamedTemporaryFile()
+        addr = f"sqlite+aiosqlite:///{file.name}"
     elif len(sys.argv) == 2:
         addr = sys.argv[1]
-        recreate = False
     else:
         print(f"Usage: {sys.argv[0]} [<database-addr>]")
         sys.exit(1)
-    asyncio.run(main(addr, recreate))
+    asyncio.run(main(addr))
 
 
 if __name__ == "__main__":
