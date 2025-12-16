@@ -1,6 +1,7 @@
 import sys
 import asyncio
 from aioconsole import ainput
+from apyds_bnf import parse
 from .orm import initialize_database, insert_or_ignore, Facts, Ideas
 from .poly import Poly
 
@@ -17,6 +18,11 @@ async def main(addr, engine=None, session=None):
                     continue
             except EOFError:
                 break
+            try:
+                parse(data)
+            except Exception as e:
+                print(f"error: {e}")
+                continue
             async with session() as sess:
                 poly = Poly(dsp=data)
                 await insert_or_ignore(sess, Facts, poly.dsp)
