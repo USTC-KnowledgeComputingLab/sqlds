@@ -4,7 +4,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.patch_stdout import patch_stdout
 from apyds_bnf import parse
 from .orm import initialize_database, insert_or_ignore, Facts, Ideas
-from .poly import get_idea
+from .utility import rule_get_idea
 
 
 async def main(addr, engine=None, session=None):
@@ -28,7 +28,7 @@ async def main(addr, engine=None, session=None):
                 continue
             async with session() as sess:
                 await insert_or_ignore(sess, Facts, ds)
-                if idea := get_idea(ds):
+                if idea := rule_get_idea(ds):
                     await insert_or_ignore(sess, Ideas, idea)
                 await sess.commit()
     except asyncio.CancelledError:

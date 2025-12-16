@@ -3,7 +3,7 @@ import asyncio
 from sqlalchemy import select
 from apyds import Search
 from .orm import initialize_database, insert_or_ignore, Facts, Ideas
-from .poly import get_idea
+from .utility import rule_get_idea
 
 
 async def main(addr, engine=None, session=None):
@@ -26,7 +26,7 @@ async def main(addr, engine=None, session=None):
                 def handler(rule):
                     ds = str(rule)
                     tasks.append(asyncio.create_task(insert_or_ignore(sess, Facts, ds)))
-                    if idea := get_idea(ds):
+                    if idea := rule_get_idea(ds):
                         tasks.append(asyncio.create_task(insert_or_ignore(sess, Ideas, idea)))
                     return False
 

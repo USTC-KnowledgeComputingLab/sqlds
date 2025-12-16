@@ -1,7 +1,7 @@
 from apyds import Rule
 
 
-def get_idea(data):
+def rule_get_idea(data):
     if not data.startswith("--"):
         return f"----\n{data.splitlines()[0]}"
     return None

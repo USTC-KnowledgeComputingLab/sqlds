@@ -2,7 +2,7 @@ from __future__ import annotations
 import typing
 import egglog
 from apyds import Term, List
-from .poly import rule_is_fact, rule_get_fact, rule_is_equality, rule_get_equality, build_equality_rule
+from .utility import rule_is_fact, rule_get_fact, rule_is_equality, rule_get_equality, build_equality_rule
 
 
 class EGraphTerm(egglog.Expr):
