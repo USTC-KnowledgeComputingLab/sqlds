@@ -207,12 +207,12 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aioconsole", specifier = ">=0.8.2" },
-    { name = "apyds", specifier = ">=0.0.7" },
-    { name = "apyds-bnf", specifier = ">=0.0.7" },
-    { name = "cloudpickle", specifier = ">=3.1.2" },
-    { name = "egglog", specifier = ">=12.0.0" },
-    { name = "sqlalchemy", extras = ["aiosqlite", "aiomysql", "postgresql-asyncpg"], specifier = ">=2.0.45" },
+    { name = "aioconsole", specifier = "~=0.8.2" },
+    { name = "apyds", specifier = "~=0.0.7" },
+    { name = "apyds-bnf", specifier = "~=0.0.7" },
+    { name = "cloudpickle", specifier = "~=3.1.2" },
+    { name = "egglog", specifier = "~=12.0.0" },
+    { name = "sqlalchemy", extras = ["aiosqlite", "aiomysql", "postgresql-asyncpg"], specifier = "~=2.0.45" },
 ]
 
 [[package]]
