@@ -59,6 +59,10 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/2e/3c/c15576e4529f4fe464d5885081f7148ff7a2c3769fae4e1f3a6aaf4df84c/apyds-0.0.9-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:2728a85359293503e48aef92bae06e0114a265434861bb86c10b557aa00f4f7d", size = 389311, upload-time = "2025-12-16T10:28:18.069Z" },
     { url = "https://files.pythonhosted.org/packages/63/e6/65f441f2a6d1c50088bd44a14f0588c574ba3f3b30d3b8964db210326618/apyds-0.0.9-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:831a7212bfd5014893f9b52fefa5ab5e7417fac9a8fc3db48565b6f82433d0bf", size = 1419287, upload-time = "2025-12-16T10:28:19.499Z" },
     { url = "https://files.pythonhosted.org/packages/75/ff/4af61ce056def38dd5b75c5984b5d7db2ebdca4a951948356a8e1c795632/apyds-0.0.9-cp314-cp314-win_amd64.whl", hash = "sha256:197d6d6e890b8801bbc2e2de50e4a8b51104e7b6ab9f5c9f0bf3992f27768211", size = 531409, upload-time = "2025-12-16T10:28:21.458Z" },
+    { url = "https://files.pythonhosted.org/packages/a7/5c/bb1e00d2867560828536e5caf528dd5ad1b62d9164b5bc2130fdfd49dce7/apyds-0.0.9-cp314-cp314t-macosx_10_15_universal2.whl", hash = "sha256:2158f31f08809b1bf0730cd3a891393bfe2f4defb294cad2898ad80688f2ccfd", size = 401465, upload-time = "2025-12-16T10:28:23.04Z" },
+    { url = "https://files.pythonhosted.org/packages/de/83/063b07fd00e52d1adc1a1b2652d7379d3bcae287ee085d17fb568bad21e0/apyds-0.0.9-cp314-cp314t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:bfef310bd0414d01d9fa7c2826a82af7d3a072dabb3a94e2cea653aea41df312", size = 391805, upload-time = "2025-12-16T10:28:24.389Z" },
+    { url = "https://files.pythonhosted.org/packages/08/33/3a7863ea87db0dded716a51fb495d3b4204dec337a5404eb07e5dfcbc3e4/apyds-0.0.9-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:2308bc614afdc57a2eda153b5cebb42f36e256c8e5c6ef0ae6b20ac588def16e", size = 1421533, upload-time = "2025-12-16T10:28:25.799Z" },
+    { url = "https://files.pythonhosted.org/packages/6c/71/3c567f6d080755642ace179e97d909942da4c068a5f7abf2a579d0b21702/apyds-0.0.9-cp314-cp314t-win_amd64.whl", hash = "sha256:aa6fe04104149cfdb720ac7b89b048cd945ecd4bc38a22139e09c451bec8b0ef", size = 548808, upload-time = "2025-12-16T10:28:27.144Z" },
 ]
 
 [[package]]
@@ -181,7 +185,7 @@ wheels = [
 
 [[package]]
 name = "ddss"
-version = "0.0.12"
+version = "0.0.13"
 source = { editable = "." }
 dependencies = [
     { name = "apyds" },
