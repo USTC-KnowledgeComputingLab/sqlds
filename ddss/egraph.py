@@ -23,19 +23,10 @@ class EGraphTerm(egglog.Expr):
     def pair(cls, lhs: EGraphTerm, rhs: EGraphTerm) -> EGraphTerm: ...
 
 
-class Search:
-    def __init__(self) -> None:
-        self.egraph = egglog.EGraph()
-        self.terms = set()
-        self.facts = set()
-        self.pairs = set()
-
-    def build_pairs(self) -> None:
-        for lhs in self.terms:
-            for rhs in self.terms:
-                if self._get_equality(lhs, rhs):
-                    equality = Term(equality_build_term(lhs, rhs))
-                    self.pairs.add(equality)
+class EGraph:
+    def __init__(self):
+        self.core = egglog.EGraph()
+        self.mapping = {}
 
     def _ast_from_term(self, data: Term) -> EGraphTerm:
         term = data.term
@@ -49,15 +40,31 @@ class Search:
             return EGraphTerm(str(term))
 
     def _ast(self, data: str) -> EGraphTerm:
-        result = self._ast_from_term(Term(data))
-        self.egraph.register(result)
-        return result
+        if data not in self.mapping:
+            self.mapping[data] = self._ast_from_term(Term(data))
+            self.core.register(self.mapping[data])
+        return self.mapping[data]
 
-    def _set_equality(self, lhs: str, rhs: str) -> None:
-        self.egraph.register(egglog.union(self._ast(lhs)).with_(self._ast(rhs)))
+    def set_equality(self, lhs: str, rhs: str) -> None:
+        self.core.register(egglog.union(self._ast(lhs)).with_(self._ast(rhs)))
 
-    def _get_equality(self, lhs: str, rhs: str) -> None:
-        return self.egraph.check_bool(self._ast(lhs) == self._ast(rhs))
+    def get_equality(self, lhs: str, rhs: str) -> None:
+        return self.core.check_bool(self._ast(lhs) == self._ast(rhs))
+
+
+class Search:
+    def __init__(self) -> None:
+        self.egraph = EGraph()
+        self.terms = set()
+        self.facts = set()
+        self.pairs = set()
+
+    def build_pairs(self) -> None:
+        for lhs in self.terms:
+            for rhs in self.terms:
+                if self.egraph.get_equality(lhs, rhs):
+                    equality = Term(equality_build_term(lhs, rhs))
+                    self.pairs.add(equality)
 
     def add(self, data: str) -> None:
         self._add_expr(data)
@@ -69,7 +76,7 @@ class Search:
         lhs, rhs = rule_get_equality(data)
         self.terms.add(lhs)
         self.terms.add(rhs)
-        self._set_equality(lhs, rhs)
+        self.egraph.set_equality(lhs, rhs)
 
     def _add_fact(self, data: str) -> None:
         if not rule_is_fact(data):
@@ -86,7 +93,7 @@ class Search:
         if not rule_is_equality(data):
             return
         lhs, rhs = rule_get_equality(data)
-        if self._get_equality(lhs, rhs):
+        if self.egraph.get_equality(lhs, rhs):
             yield equality_build_rule(lhs, rhs)
         query = Term(rule_get_fact(data))
         for target in self.pairs:
@@ -99,7 +106,7 @@ class Search:
             return
         idea = rule_get_fact(data)
         for fact in self.facts:
-            if self._get_equality(idea, fact):
+            if self.egraph.get_equality(idea, fact):
                 yield data
         for fact in self.facts:
             query = Term(equality_build_term(idea, fact))
