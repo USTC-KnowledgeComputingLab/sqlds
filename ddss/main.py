@@ -1,6 +1,7 @@
 import sys
 import asyncio
 import tempfile
+import pathlib
 from .orm import initialize_database
 from .ds import main as ds
 from .egg import main as egg
@@ -37,7 +38,8 @@ sqlalchemy_driver = {
 def cli():
     if len(sys.argv) == 1:
         file = tempfile.NamedTemporaryFile()
-        addr = f"sqlite:///{file.name}"
+        path = pathlib.Path(file.name).as_posix()
+        addr = f"sqlite:///{path}"
     elif len(sys.argv) == 2 and sys.argv[1] not in ["--help", "-help", "-h", "/help", "/h", "/?"]:
         addr = sys.argv[1]
     else:
