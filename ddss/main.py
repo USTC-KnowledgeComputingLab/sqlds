@@ -38,8 +38,8 @@ sqlalchemy_driver = {
 def cli():
     if len(sys.argv) == 1:
         file = tempfile.NamedTemporaryFile()
-        db_path = pathlib.Path(file.name).as_posix()
-        addr = f"sqlite:///{db_path}"
+        path = pathlib.Path(file.name).as_posix()
+        addr = f"sqlite:///{path}"
     elif len(sys.argv) == 2 and sys.argv[1] not in ["--help", "-help", "-h", "/help", "/h", "/?"]:
         addr = sys.argv[1]
     else:
