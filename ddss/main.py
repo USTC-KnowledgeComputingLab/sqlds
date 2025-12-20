@@ -37,9 +37,9 @@ sqlalchemy_driver = {
 
 def cli():
     if len(sys.argv) == 1:
-        file = tempfile.NamedTemporaryFile()
-        path = pathlib.Path(file.name).as_posix()
-        addr = f"sqlite:///{path}"
+        tmpdir = tempfile.TemporaryDirectory()
+        path = pathlib.Path(tmpdir.name) / "ddss.db"
+        addr = f"sqlite:///{path.as_posix()}"
     elif len(sys.argv) == 2 and sys.argv[1] not in ["--help", "-help", "-h", "/help", "/h", "/?"]:
         addr = sys.argv[1]
     else:
