@@ -36,10 +36,11 @@ sqlalchemy_driver = {
 
 
 def cli():
+    tmpdir = None
     if len(sys.argv) == 1:
-        file = tempfile.NamedTemporaryFile()
-        path = pathlib.Path(file.name).as_posix()
-        addr = f"sqlite:///{path}"
+        tmpdir = tempfile.TemporaryDirectory()
+        path = pathlib.Path(tmpdir.name) / "ddss.db"
+        addr = f"sqlite:///{path.as_posix()}"
     elif len(sys.argv) == 2 and sys.argv[1] not in ["--help", "-help", "-h", "/help", "/h", "/?"]:
         addr = sys.argv[1]
     else:
@@ -54,7 +55,11 @@ def cli():
         print(f"Unsupported database address: {addr}")
         sys.exit(1)
     print(f"addr: {addr}")
-    asyncio.run(main(addr))
+    try:
+        asyncio.run(main(addr))
+    finally:
+        if tmpdir is not None:
+            tmpdir.cleanup()
 
 
 if __name__ == "__main__":
