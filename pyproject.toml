@@ -1,6 +1,6 @@
 [project]
 name = "ddss"
-version = "0.0.16"
+dynamic = ["version"]
 description = "Distributed Deductive System Sorts"
 license = "AGPL-3.0-or-later"
 readme = "README.md"
@@ -19,12 +19,14 @@ dependencies = [
 Repository = "https://github.com/USTC-KnowledgeComputingLab/ddss.git"
 
 [build-system]
-requires = ["uv_build~=0.9.17"]
-build-backend = "uv_build"
+requires = ["setuptools>=64", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
 
-[tool.uv.build-backend]
-module-name = "ddss"
-module-root = ""
+[tool.setuptools]
+packages = ["ddss"]
+
+[tool.setuptools_scm]
+version_file = "ddss/_version.py"
 
 [project.scripts]
 ddss = "ddss.main:cli"
