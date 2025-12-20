@@ -36,7 +36,6 @@ sqlalchemy_driver = {
 
 
 def cli():
-    tmpdir = None
     if len(sys.argv) == 1:
         tmpdir = tempfile.TemporaryDirectory()
         path = pathlib.Path(tmpdir.name) / "ddss.db"
@@ -55,11 +54,7 @@ def cli():
         print(f"Unsupported database address: {addr}")
         sys.exit(1)
     print(f"addr: {addr}")
-    try:
-        asyncio.run(main(addr))
-    finally:
-        if tmpdir is not None:
-            tmpdir.cleanup()
+    asyncio.run(main(addr))
 
 
 if __name__ == "__main__":
