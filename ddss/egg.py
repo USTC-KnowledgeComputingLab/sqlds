@@ -26,7 +26,7 @@ async def main(addr, engine=None, session=None):
                 for i in await sess.scalars(select(Facts).where(Facts.id > max_fact)):
                     max_fact = max(max_fact, i.id)
                     search.add(i.data)
-                search.build_pairs()
+                search.rebuild()
                 tasks = []
                 next_pool = []
                 for i in pool:

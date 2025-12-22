@@ -1,7 +1,7 @@
 from __future__ import annotations
 import typing
-import egglog
-from apyds import Term, List
+from apyds import Term
+from apyds_egg import EGraph as ApydsEGraph, EClassId
 from .utility import (
     rule_is_fact,
     rule_get_fact,
@@ -13,43 +13,25 @@ from .utility import (
 )
 
 
-class EGraphTerm(egglog.Expr):
-    def __init__(self, name: egglog.StringLike) -> None: ...
-
-    @classmethod
-    def begin(cls) -> EGraphTerm: ...
-
-    @classmethod
-    def pair(cls, lhs: EGraphTerm, rhs: EGraphTerm) -> EGraphTerm: ...
-
-
 class EGraph:
     def __init__(self):
-        self.core = egglog.EGraph()
-        self.mapping = {}
+        self.core = ApydsEGraph()
+        self.mapping: dict[str, EClassId] = {}
 
-    def _ast_from_term(self, data: Term) -> EGraphTerm:
-        term = data.term
-        if isinstance(term, List):
-            result = EGraphTerm.begin()
-            for i in range(len(term)):
-                child = self._ast_from_term(term[i])
-                result = EGraphTerm.pair(result, child)
-            return result
-        else:
-            return EGraphTerm(str(term))
-
-    def _ast(self, data: str) -> EGraphTerm:
+    def _get_or_add(self, data: str) -> EClassId:
         if data not in self.mapping:
-            self.mapping[data] = self._ast_from_term(Term(data))
-            self.core.register(self.mapping[data])
+            self.mapping[data] = self.core.add(Term(data))
         return self.mapping[data]
 
     def set_equality(self, lhs: str, rhs: str) -> None:
-        self.core.register(egglog.union(self._ast(lhs)).with_(self._ast(rhs)))
+        lhs_id = self._get_or_add(lhs)
+        rhs_id = self._get_or_add(rhs)
+        self.core.merge(lhs_id, rhs_id)
 
-    def get_equality(self, lhs: str, rhs: str) -> None:
-        return self.core.check_bool(self._ast(lhs) == self._ast(rhs))
+    def get_equality(self, lhs: str, rhs: str) -> bool:
+        lhs_id = self._get_or_add(lhs)
+        rhs_id = self._get_or_add(rhs)
+        return self.core.find(lhs_id) == self.core.find(rhs_id)
 
 
 class Search:
@@ -59,7 +41,8 @@ class Search:
         self.facts = set()
         self.pairs = set()
 
-    def build_pairs(self) -> None:
+    def rebuild(self) -> None:
+        self.egraph.core.rebuild()
         for lhs in self.terms:
             for rhs in self.terms:
                 if self.egraph.get_equality(lhs, rhs):
