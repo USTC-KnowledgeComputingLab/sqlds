@@ -1,10 +1,12 @@
 import asyncio
 import tempfile
 import pathlib
+from unittest.mock import AsyncMock, patch, MagicMock
+
 import pytest
 import pytest_asyncio
-from unittest.mock import AsyncMock, patch, MagicMock
 from sqlalchemy import select
+
 from ddss.orm import initialize_database, Facts, Ideas
 from ddss.input import main
 
@@ -88,7 +90,7 @@ async def test_input_invalid_input_handling(temp_db, capsys):
     # Mock PromptSession to simulate user input
     mock_prompt_session = MagicMock()
     # First input will cause parse error, second exits
-    mock_prompt_session.prompt_async = AsyncMock(side_effect=["invalid((data", EOFError()])
+    mock_prompt_session.prompt_async = AsyncMock(side_effect=["=>", EOFError()])
 
     with patch("ddss.input.PromptSession", return_value=mock_prompt_session):
         # Run the main function
