@@ -21,12 +21,16 @@ async def temp_db():
 
 @pytest.mark.asyncio
 async def test_egg_processes_ideas_with_matching_facts(temp_db):
-    """Test that egg processes Ideas and generates Facts when there are matching facts."""
+    """Test that egg processes Ideas and generates Facts when there are matching facts.
+
+    Uses equality format: '----\\n(binary == a b)\\n' to test egraph matching.
+    This format is recognized by rule_is_equality() in utility.py.
+    """
     addr, engine, session = temp_db
 
     # Add test data - a fact and an idea that should match
     async with session() as sess:
-        # Add a fact that defines an equality
+        # Add a fact that defines an equality (format: '----\n(binary == a b)\n')
         sess.add(Facts(data="----\n(binary == a b)\n"))
         # Add an idea that should match the fact
         sess.add(Ideas(data="----\n(binary == a b)\n"))
@@ -51,12 +55,16 @@ async def test_egg_processes_ideas_with_matching_facts(temp_db):
 
 @pytest.mark.asyncio
 async def test_egg_adds_facts_from_search_results(temp_db):
-    """Test that egg adds new Facts generated from search results."""
+    """Test that egg adds new Facts generated from search results.
+
+    Uses simple fact format: '----\\nx\\n' to test basic fact processing.
+    This format is recognized by rule_is_fact() in utility.py.
+    """
     addr, engine, session = temp_db
 
     # Add test data
     async with session() as sess:
-        # Add a base fact
+        # Add a base fact (format: '----\nx\n')
         sess.add(Facts(data="----\nx\n"))
         # Add an idea that won't immediately match (will stay in pool)
         sess.add(Ideas(data="----\ny\n"))
