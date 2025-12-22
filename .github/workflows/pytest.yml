@@ -11,6 +11,7 @@ env:
 
 jobs:
   pytest:
+    name: Pytest
     runs-on: ubuntu-latest
 
     strategy:
