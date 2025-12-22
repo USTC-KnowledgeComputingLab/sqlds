@@ -25,7 +25,7 @@ async def test_output_formats_facts_correctly(temp_db, capsys):
 
     # Add test data
     async with session() as sess:
-        sess.add(Facts(data="a\n----\nb"))
+        sess.add(Facts(data="a\n----\nb\n"))
         await sess.commit()
 
     # Run the main function with a timeout to avoid infinite loop
@@ -49,7 +49,7 @@ async def test_output_formats_ideas_correctly(temp_db, capsys):
 
     # Add test data
     async with session() as sess:
-        sess.add(Ideas(data="x\n----\ny"))
+        sess.add(Ideas(data="x\n----\ny\n"))
         await sess.commit()
 
     # Run the main function with a timeout to avoid infinite loop
@@ -73,10 +73,10 @@ async def test_output_multiple_entries(temp_db, capsys):
 
     # Add test data
     async with session() as sess:
-        sess.add(Facts(data="a\n----\nb"))
-        sess.add(Facts(data="c\n----\nd"))
-        sess.add(Ideas(data="x\n----\ny"))
-        sess.add(Ideas(data="p\n----\nq"))
+        sess.add(Facts(data="a\n----\nb\n"))
+        sess.add(Facts(data="c\n----\nd\n"))
+        sess.add(Ideas(data="x\n----\ny\n"))
+        sess.add(Ideas(data="p\n----\nq\n"))
         await sess.commit()
 
     # Run the main function with a timeout to avoid infinite loop
