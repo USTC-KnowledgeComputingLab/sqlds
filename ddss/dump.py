@@ -17,7 +17,6 @@ async def main(addr, engine=None, session=None):
             # Then output all facts
             for f in await sess.scalars(select(Facts)):
                 print("fact:", unparse(f.data))
-            await sess.commit()
     finally:
         await engine.dispose()
 
