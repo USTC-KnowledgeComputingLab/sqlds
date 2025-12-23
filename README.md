@@ -1,85 +1,105 @@
 # Distributed Deductive System Sorts (DDSS)
 
-DDSS 是一个分布式演绎系统，用于自动化定理证明和知识推理。该系统采用前向链式推理和 E-graph（等价图）技术，实现高效的逻辑推导和等价关系推理。
+DDSS is a distributed deductive system for automated theorem proving and knowledge reasoning. It combines forward-chaining inference with E-graph (equality graph) techniques to enable efficient logical deduction and equality reasoning.
 
-## 设计思路
+## Design Philosophy
 
-DDSS 采用模块化的设计，将推理引擎分解为四个独立但协同工作的模块：
+DDSS adopts a modular architecture that decomposes the reasoning engine into independent but collaborative components:
 
-1. **分离关注点**：每个模块专注于特定的推理任务
-2. **并发执行**：所有模块通过数据库异步协作，充分利用系统资源
-3. **持久化存储**：使用数据库存储事实（Facts）和想法（Ideas），保证数据一致性
-4. **增量推理**：只处理新增的事实，避免重复计算
+1. **Separation of Concerns**: Each module focuses on a specific reasoning task
+2. **Concurrent Execution**: All modules collaborate asynchronously through a shared database, fully utilizing system resources
+3. **Persistent Storage**: Uses a database to store facts and ideas, ensuring data consistency
+4. **Incremental Reasoning**: Only processes newly added facts, avoiding redundant computations
 
-系统的核心思想是将演绎推理分为两个层次：
-- **演绎搜索（DS）**：基于经典的前向链式推理，从已知事实推导新事实
-- **等价推理（E-graph）**：基于 E-graph 算法，处理等价关系和项重写
+The system divides deductive reasoning into two layers:
+- **Deductive Search (DS)**: Classical forward-chaining inference that derives new facts from known facts
+- **Equality Reasoning (E-graph)**: E-graph algorithm for handling equivalence relations and term rewriting
 
-## 模块介绍
+## Modules
 
-### 1. DS 模块（Deductive Search）
+### 1. Input Module
 
-**文件**：`ddss/ds.py`
+**File**: `ddss/input.py`
 
-DS 模块实现了前向链式推理引擎，核心功能包括：
+The Input module provides an interactive input interface:
 
-- 监听数据库中的新事实（Facts）
-- 应用推理规则进行演绎推理
-- 生成新的事实和想法（Ideas）
+- Uses `prompt-toolkit` for a user-friendly command-line interface
+- Accepts facts and rules using BNF syntax parsing
+- Automatically converts input rules to ideas (when applicable)
+- Writes to the database in real-time, triggering inference in other modules
 
-**工作原理**：
-- 使用 `apyds.Search` 进行模式匹配和规则应用
-- 当检测到形如 `a => b` 的规则和 `=> a` 的事实时，推导出 `=> b`
-- 对于多前提规则如 `a, b => c`，匹配部分前提后生成新的规则和对应的想法
+### 2. Output Module
 
-### 2. Egg 模块（E-graph）
+**File**: `ddss/output.py`
 
-**文件**：`ddss/egg.py`
+The Output module displays reasoning results in real-time:
 
-Egg 模块实现了基于 E-graph 的等价推理引擎：
+- Monitors newly added facts and ideas in the database
+- Uses `apyds_bnf.unparse` to convert internal representation to readable format
+- Outputs the inference process in real-time for debugging and observation
 
-- 维护一个等价图（E-graph），存储项之间的等价关系
-- 处理想法（Ideas），尝试通过等价关系证明它们
-- 支持以下推理规则：
-  - **对称性**：`a = b` ⇒ `b = a`
-  - **传递性**：`a = b, b = c` ⇒ `a = c`
-  - **同余性**：`a = b` ⇒ `f(a) = f(b)`
-  - **代换**：`f(a), a = b` ⇒ `f(b)`
+### 3. Load Module
 
-**工作原理**：
-- 从数据库读取等价关系事实，构建 E-graph
-- 对于每个想法，在 E-graph 中查找是否可以通过等价关系证明
-- 支持变量模式匹配，能够处理参数化的等价关系
+**File**: `ddss/load.py`
 
-### 3. Input 模块
+The Load module imports data from external sources:
 
-**文件**：`ddss/input.py`
+- Reads facts from standard input in batch mode
+- Parses using BNF syntax
+- Inserts into the database for processing by other modules
 
-Input 模块提供交互式输入接口：
+### 4. Dump Module
 
-- 使用 `prompt-toolkit` 提供友好的命令行界面
-- 支持输入事实和规则，使用 BNF 语法解析
-- 自动将输入的规则转换为想法（如果适用）
-- 实时写入数据库，触发其他模块的推理
+**File**: `ddss/dump.py`
 
-### 4. Output 模块
+The Dump module exports data to external destinations:
 
-**文件**：`ddss/output.py`
+- Outputs all ideas and facts from the database
+- Converts to readable format using `apyds_bnf.unparse`
+- Useful for saving and analyzing reasoning results
 
-Output 模块负责实时显示推理结果：
+### 5. DS Module (Deductive Search)
 
-- 监听数据库中新增的事实和想法
-- 使用 `apyds_bnf.unparse` 将内部表示转换为可读格式
-- 实时输出推理过程，便于调试和观察
+**File**: `ddss/ds.py`
 
-## 集成运行
+The DS module implements a forward-chaining inference engine:
 
-DDSS 提供了一个集成的主程序，同时运行所有四个模块：
+- Monitors new facts in the database
+- Applies inference rules to perform deductive reasoning
+- Generates new facts and ideas
 
-**文件**：`ddss/main.py`
+**How it works**:
+- Uses `apyds.Search` for pattern matching and rule application
+- When it detects a rule like `a => b` and a fact `=> a`, it derives `=> b`
+- For multi-premise rules like `a, b => c`, matching partial premises generates new rules and corresponding ideas
+
+### 6. Egg Module (E-graph)
+
+**File**: `ddss/egg.py`
+
+The Egg module implements an E-graph-based equality reasoning engine:
+
+- Maintains an equality graph (E-graph) storing equivalence relations between terms
+- Processes ideas, attempting to prove them through equality relations
+- Supports the following inference rules:
+  - **Symmetry**: `a = b` ⇒ `b = a`
+  - **Transitivity**: `a = b, b = c` ⇒ `a = c`
+  - **Congruence**: `a = b` ⇒ `f(a) = f(b)`
+  - **Substitution**: `f(a), a = b` ⇒ `f(b)`
+
+**How it works**:
+- Reads equality relation facts from the database, building an E-graph
+- For each idea, searches in the E-graph whether it can be proven through equality relations
+- Supports variable pattern matching, handling parameterized equality relations
+
+## Integrated Main
+
+DDSS provides an integrated main program that runs all four modules concurrently:
+
+**File**: `ddss/main.py`
 
 ```python
-# main() 函数同时启动四个模块
+# The main() function starts four modules simultaneously
 await asyncio.wait([
     asyncio.create_task(ds(addr, engine, session)),
     asyncio.create_task(egg(addr, engine, session)),
@@ -88,64 +108,55 @@ await asyncio.wait([
 ])
 ```
 
-**数据流**：
-1. 用户通过 Input 模块输入事实
-2. DS 模块和 Egg 模块监听数据库，进行推理
-3. 新推导的事实写回数据库
-4. Output 模块实时显示所有新事实和想法
+**Data Flow**:
+1. User inputs facts through the Input module
+2. DS and Egg modules monitor the database and perform inference
+3. Newly derived facts are written back to the database
+4. Output module displays all new facts and ideas in real-time
 
-## 安装
+## Installation
 
-### 使用 uvx（推荐）
+### Using uvx (Recommended)
 
-最简单的方式是使用 `uvx` 一键运行：
+The simplest way is to run with `uvx`:
 
 ```bash
 uvx ddss
 ```
 
-这将自动安装所有依赖并启动 DDSS 系统。
+This automatically installs all dependencies and starts the DDSS system.
 
-### 使用 uv 安装
-
-如果你已经安装了 `uv`，可以通过以下方式安装：
-
-```bash
-uv pip install ddss
-```
-
-### 使用 pip 安装
+### Using pip
 
 ```bash
 pip install ddss
+ddss
 ```
 
-### 从源码安装
+### From Source
 
 ```bash
 git clone https://github.com/USTC-KnowledgeComputingLab/ddss.git
 cd ddss
-uv pip install -e .
-# 或使用 pip
 pip install -e .
 ```
 
-## 使用方法
+## Usage
 
-### 基本用法
+### Basic Usage
 
-运行 DDSS，使用临时的 SQLite 数据库：
+Run DDSS with a temporary SQLite database:
 
 ```bash
 ddss
 ```
 
-### 指定数据库
+### Specifying a Database
 
-DDSS 支持多种数据库后端：
+DDSS supports multiple database backends:
 
 ```bash
-# SQLite（持久化）
+# SQLite (persistent)
 ddss sqlite:///path/to/database.db
 
 # MySQL
@@ -158,121 +169,48 @@ ddss mariadb://user:password@host:port/database
 ddss postgresql://user:password@host:port/database
 ```
 
-### 交互式使用
+### Interactive Usage
 
-启动后，在 `input:` 提示符下输入事实和规则：
+After starting, input facts and rules at the `input:` prompt. The syntax follows the format `premise => conclusion`:
 
+**Example 1: Simple Inference**
+
+Input a fact stating `a` is true:
 ```
-input: ----
-       a
-
-input: a
-       ----
-       b
+input: => a
 ```
 
-系统会自动推导新的事实并实时显示。
-
-### 示例：简单的推理
-
+Input a rule stating if `a` then `b`:
 ```
-# 输入事实：=> a
-input: ----
-       a
-
-# 输入规则：a => b
-input: a
-       ----
-       b
-
-# 系统会自动推导并显示：=> b
-fact: ----
-      b
+input: a => b
 ```
 
-### 示例：等价推理
-
+The system automatically derives and displays `=> b`:
 ```
-# 输入等价关系：a = b
-input: ----
-       (binary == a b)
-
-# 输入想法：b = a
-input: ----
-       (binary == b a)
-
-# 系统会通过对称性证明该想法
-fact: ----
-      (binary == b a)
+fact: => b
 ```
 
-## 依赖项
+**Example 2: Equality Reasoning**
 
-- Python >= 3.11
-- apyds >= 0.0.11：抽象推理系统核心库
-- apyds-bnf >= 0.0.11：BNF 语法解析
-- apyds-egg >= 0.0.11：E-graph 实现
-- prompt-toolkit >= 3.0.52：交互式命令行界面
-- sqlalchemy >= 2.0.45：数据库抽象层
-  - 支持 SQLite（aiosqlite）
-  - 支持 MySQL/MariaDB（aiomysql）
-  - 支持 PostgreSQL（asyncpg）
-
-## 开发
-
-### 运行测试
-
-```bash
-# 安装开发依赖
-uv pip install -e ".[dev]"
-
-# 运行测试
-pytest
-
-# 运行测试并显示覆盖率
-pytest --cov=ddss
+Input an equality relation `a = b`:
+```
+input: => (binary == a b)
 ```
 
-### 代码风格
-
-项目使用 `ruff` 进行代码检查和格式化：
-
-```bash
-# 检查代码
-ruff check .
-
-# 自动修复
-ruff check --fix .
-
-# 格式化代码
-ruff format .
+Input an idea `b = a`:
+```
+input: => (binary == b a)
 ```
 
-## 项目结构
-
+The system proves this idea through symmetry:
 ```
-ddss/
-├── ddss/
-│   ├── __init__.py
-│   ├── main.py       # 集成主程序和 CLI 入口
-│   ├── ds.py         # 演绎搜索模块
-│   ├── egg.py        # E-graph 推理模块
-│   ├── egraph.py     # E-graph 核心实现
-│   ├── input.py      # 交互式输入模块
-│   ├── output.py     # 输出显示模块
-│   ├── orm.py        # 数据库模型
-│   ├── utility.py    # 工具函数
-│   ├── dump.py       # 数据导出
-│   └── load.py       # 数据导入
-├── tests/            # 测试文件
-├── pyproject.toml    # 项目配置
-└── README.md         # 本文件
+fact: => (binary == b a)
 ```
 
-## 许可证
+## License
 
-AGPL-3.0-or-later
+This project is licensed under the GNU Affero General Public License v3.0 or later. See [LICENSE.md](LICENSE.md) for details.
 
-## 链接
+## Links
 
 - GitHub: https://github.com/USTC-KnowledgeComputingLab/ddss
