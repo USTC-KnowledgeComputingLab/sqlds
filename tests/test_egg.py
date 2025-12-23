@@ -203,8 +203,8 @@ async def test_egg_cancellation(temp_db):
 # Variable-based tests
 @pytest.mark.asyncio
 async def test_egg_symmetry_with_variables(temp_db):
-    """Test symmetry with variables: given variable equality a(`x)=b(`x), 
-    the system can derive the symmetric concrete instance b(t)=a(t) by 
+    """Test symmetry with variables: given variable equality a(`x)=b(`x),
+    the system can derive the symmetric concrete instance b(t)=a(t) by
     unifying the variable pattern with concrete value t."""
     addr, engine, session = temp_db
 
@@ -261,7 +261,7 @@ async def test_egg_transitivity_with_variables(temp_db):
 @pytest.mark.asyncio
 async def test_egg_congruence_with_variables(temp_db):
     """Test congruence with variables: given a(`x)=b(`x), derive f(a(t))=f(b(t)).
-    
+
     This tests that variable patterns enable congruence on nested structures:
     - Variable fact a(`x)=b(`x) allows deriving concrete equality a(t)=b(t)
     - Concrete equality a(t)=b(t) enables congruence to derive f(a(t))=f(b(t))
@@ -298,7 +298,7 @@ async def test_egg_congruence_with_variables(temp_db):
 @pytest.mark.asyncio
 async def test_egg_substitution_with_variables(temp_db):
     """Test substitution with variables: given f(a(`x)) and a(`x)=b(`x), derive f(b(t)).
-    
+
     This tests that variable patterns enable substitution in nested structures:
     - Facts f(a(`x)) and a(`x)=b(`x) allow deriving f(b(`x)) via e-graph equality
     - Variable fact f(b(`x)) allows deriving concrete instance f(b(t))
@@ -338,7 +338,7 @@ async def test_egg_complex_situation_with_variables(temp_db):
     """Test comprehensive combination with variables alongside concrete facts.
 
     This test demonstrates that variable facts and concrete facts can work together.
-    
+
     Given:
     - a(`x)=b(`x) (variable fact: establishes parametric equality)
     - b(`x)=c(`x) (variable fact: establishes parametric equality)
