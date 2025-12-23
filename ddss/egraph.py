@@ -234,11 +234,11 @@ class Search:
                             for x in idea_group:
                                 for y in fact_group:
                                     # Build the equality query and check matches
-                                    # query is (x == y), target_pattern is (idea == fact)
-                                    equality_pair = _build_lhs_rhs_to_term(x, y)
-                                    target_pattern = _build_lhs_rhs_to_term(idea, fact)
-                                    if unification := equality_pair @ target_pattern:
-                                        if result := equality_pair.ground(unification, scope="1"):
+                                    # target is (x == y), query is (idea == fact)
+                                    target = _build_lhs_rhs_to_term(x, y)
+                                    query = _build_lhs_rhs_to_term(idea, fact)
+                                    if unification := target @ query:
+                                        if result := target.ground(unification, scope="1"):
                                             term = result.term
                                             if isinstance(term, List):
                                                 yield _build_term_to_rule(term[2])
