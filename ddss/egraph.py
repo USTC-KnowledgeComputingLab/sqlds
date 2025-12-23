@@ -66,7 +66,7 @@ class Search:
                 if self.egraph.get_equality(lhs, rhs):
                     equality = _build_lhs_rhs_to_term(lhs, rhs)
                     self.pairs.add(equality)
-        
+
         # Build fact equivalence cache for optimization
         self.fact_equiv_cache.clear()
         for fact in self.facts:
@@ -98,14 +98,14 @@ class Search:
 
     def _collect_matching_candidates(self, pattern: Term, candidates: set[Term]) -> list[Term]:
         """Collect all candidates that can potentially match the pattern.
-        
+
         Uses the @ operator (unification) to check if pattern can match each candidate.
         The @ operator attempts to unify two terms, returning a substitution if successful.
-        
+
         Args:
             pattern: The pattern term to match against
             candidates: Set of candidate terms to check
-            
+
         Returns:
             List of candidates that can unify with the pattern
         """
@@ -119,19 +119,19 @@ class Search:
         """Group terms by their equivalence classes in the egraph."""
         if not terms:
             return []
-        
+
         # Map each term to its representative (canonical form)
         term_to_repr: dict[Term, EClassId] = {}
         for term in terms:
             term_to_repr[term] = self.egraph.core.find(self.egraph._get_or_add(term))
-        
+
         # Group terms by representative
         repr_to_terms: dict[EClassId, list[Term]] = {}
         for term, repr_id in term_to_repr.items():
             if repr_id not in repr_to_terms:
                 repr_to_terms[repr_id] = []
             repr_to_terms[repr_id].append(term)
-        
+
         return list(repr_to_terms.values())
 
     def execute(self, data: Rule) -> typing.Iterator[Rule]:
@@ -140,7 +140,7 @@ class Search:
 
     def _execute_expr(self, data: Rule) -> typing.Iterator[Rule]:
         """Execute equality query: Q := A == B
-        
+
         Optimized approach:
         1. Collect A_pool = all terms x where A can match x
         2. Collect B_pool = all terms y where B can match y
@@ -151,23 +151,23 @@ class Search:
         if lhs_rhs is None:
             return
         lhs, rhs = lhs_rhs
-        
+
         # 检查是否已经存在严格相等的事实
         if self.egraph.get_equality(lhs, rhs):
             yield data
-        
+
         # 尝试处理含有变量的情况
         # Optimization: Collect candidates that can match lhs and rhs
         lhs_pool = self._collect_matching_candidates(lhs, self.terms)
         rhs_pool = self._collect_matching_candidates(rhs, self.terms)
-        
+
         if not lhs_pool or not rhs_pool:
             return
-        
+
         # Group by equivalence classes
         lhs_groups = self._group_by_equivalence_class(lhs_pool)
         rhs_groups = self._group_by_equivalence_class(rhs_pool)
-        
+
         # Match groups that are equivalent
         for lhs_group in lhs_groups:
             for rhs_group in rhs_groups:
@@ -187,7 +187,7 @@ class Search:
 
     def _execute_fact(self, data: Rule) -> typing.Iterator[Rule]:
         """Execute fact query: Q := A
-        
+
         Optimized approach:
         1. Collect A_pool = all terms x where A can match x
         2. For each fact F, use cached equivalent terms (F_pool)
@@ -197,32 +197,32 @@ class Search:
         if len(data) != 0:
             return
         idea = data.conclusion
-        
+
         # 检查是否已经存在严格相等的事实
         for fact in self.facts:
             if self.egraph.get_equality(idea, fact):
                 yield data
-        
+
         # 尝试处理含有变量的情况
         # Optimization: Collect candidates that can match the idea
         idea_pool = self._collect_matching_candidates(idea, self.terms)
-        
+
         if not idea_pool:
             return
-        
+
         # Group idea_pool by equivalence classes
         idea_groups = self._group_by_equivalence_class(idea_pool)
-        
+
         # For each fact, check if it matches with idea through equivalence
         for fact in self.facts:
             # Get cached equivalent terms for this fact
             fact_pool = self.fact_equiv_cache.get(fact, set())
             if not fact_pool:
                 continue
-            
+
             # Group fact_pool by equivalence classes
             fact_groups = self._group_by_equivalence_class(list(fact_pool))
-            
+
             # Match groups that are equivalent
             for idea_group in idea_groups:
                 for fact_group in fact_groups:
