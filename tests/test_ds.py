@@ -167,8 +167,10 @@ async def test_ds_duplicate_facts_not_added(temp_db):
 
     # Add facts that will produce a duplicate: a => b twice with => a
     async with session() as sess:
-        sess.add(Facts(data="a\n----\nb\n"))
+        sess.add(Facts(data="a\n----\nc\n"))
+        sess.add(Facts(data="b\n----\nc\n"))
         sess.add(Facts(data="----\na\n"))
+        sess.add(Facts(data="----\nb\n"))
         await sess.commit()
 
     # Run the main function
@@ -180,11 +182,11 @@ async def test_ds_duplicate_facts_not_added(temp_db):
     except asyncio.CancelledError:
         pass
 
-    # Count the facts - should have 3: original 2 + 1 inferred => b
+    # Count the facts - should have 5: original 4 + 1 inferred => c
     async with session() as sess:
         all_facts = await sess.scalars(select(Facts))
         facts_list = list(all_facts)
 
-    assert len(facts_list) == 3
+    assert len(facts_list) == 5
     facts_data = [f.data for f in facts_list]
-    assert facts_data.count("----\nb\n") == 1  # Should only appear once
+    assert facts_data.count("----\nc\n") == 1  # Should only appear once
