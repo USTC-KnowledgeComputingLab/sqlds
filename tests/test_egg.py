@@ -313,27 +313,33 @@ async def test_egg_substitution_with_variables(temp_db):
 
 @pytest.mark.asyncio
 async def test_egg_complex_situation_with_variables(temp_db):
-    """Test comprehensive combination with variables.
+    """Test comprehensive combination with variables alongside concrete facts.
 
+    This test demonstrates that variable facts and concrete facts can work together.
+    
     Given:
-    - a(`x)=b(`x) (fact with variable)
-    - b(`x)=c(`x) (fact with same variable)
-    - f(a) (fact)
+    - a(`x)=b(`x) (variable fact: establishes parametric equality)
+    - b(`x)=c(`x) (variable fact: establishes parametric equality)
+    - a=b (concrete fact: needed for congruence to work on concrete terms)
+    - b=c (concrete fact: needed for congruence to work on concrete terms)
+    - f(a) (concrete fact)
 
     Should derive:
-    - b(t)=a(t) (via symmetry from a(`x)=b(`x))
-    - a(t)=c(t) (via transitivity from a(`x)=b(`x), b(`x)=c(`x))
-    - f(b)=f(c) (via congruence from b=c, which needs b=c as a separate fact)
-    - f(c) (via substitution: f(a) and a=c)
+    - b(t)=a(t) (via symmetry from variable fact a(`x)=b(`x))
+    - a(t)=c(t) (via transitivity from variable facts a(`x)=b(`x), b(`x)=c(`x))
+    - f(b)=f(c) (via congruence from concrete facts a=b, b=c)
+    - f(c) (via substitution: f(a) and concrete transitivity a=b=c)
     """
     addr, engine, session = temp_db
 
-    # Add facts with variables and concrete facts for congruence
+    # Add both variable facts and concrete facts
     async with session() as sess:
+        # Variable facts for testing parametric reasoning
         sess.add(Facts(data="----\n(binary == (unary a `x) (unary b `x))\n"))
         sess.add(Facts(data="----\n(binary == (unary b `x) (unary c `x))\n"))
-        sess.add(Facts(data="----\n(binary == a b)\n"))  # Also add concrete equality for congruence
-        sess.add(Facts(data="----\n(binary == b c)\n"))  # Also add concrete equality for congruence
+        # Concrete facts needed for congruence on non-parametric terms
+        sess.add(Facts(data="----\n(binary == a b)\n"))
+        sess.add(Facts(data="----\n(binary == b c)\n"))
         sess.add(Facts(data="----\n(unary f a)\n"))
         # Ideas to test
         sess.add(Ideas(data="----\n(binary == (unary b t) (unary a t))\n"))  # symmetry
@@ -359,7 +365,7 @@ async def test_egg_complex_situation_with_variables(temp_db):
         assert "----\n(binary == (unary b t) (unary a t))\n" in fact_data
         # Test transitivity: a(`x)=b(`x), b(`x)=c(`x) should derive a(t)=c(t)
         assert "----\n(binary == (unary a t) (unary c t))\n" in fact_data
-        # Test congruence: b=c should derive f(b)=f(c)
+        # Test congruence: a=b, b=c should derive f(b)=f(c)
         assert "----\n(binary == (unary f b) (unary f c))\n" in fact_data
-        # Test substitution: f(a) and a=c should derive f(c)
+        # Test substitution: f(a) and a=b=c should derive f(c)
         assert "----\n(unary f c)\n" in fact_data
