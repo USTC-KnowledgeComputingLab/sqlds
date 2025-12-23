@@ -12,3 +12,6 @@ wheels/
 # SQLite
 *.db
 *.sqlite
+
+# Coverage
+.coverage
