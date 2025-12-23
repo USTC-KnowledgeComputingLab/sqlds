@@ -118,5 +118,5 @@ class Search:
                 if unification := target @ query:
                     if result := target.ground(unification, scope="1"):
                         term = result.term
-                        if isinstance(term, Term):
+                        if isinstance(term, List):
                             yield _build_term_to_rule(term[2])
