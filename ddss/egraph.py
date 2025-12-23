@@ -100,8 +100,8 @@ class Search:
         query = data.conclusion
         for target in self.pairs:
             if unification := target @ query:
-                result = target.ground(unification, scope="1")
-                yield _build_term_to_rule(result)
+                if result := target.ground(unification, scope="1"):
+                    yield _build_term_to_rule(result)
 
     def _execute_fact(self, data: Rule) -> typing.Iterator[Rule]:
         if len(data) != 0:
@@ -116,5 +116,7 @@ class Search:
             query = _build_lhs_rhs_to_term(idea, fact)
             for target in self.pairs:
                 if unification := target @ query:
-                    result = target.ground(unification, scope="1")
-                    yield _build_term_to_rule(result.term[2])
+                    if result := target.ground(unification, scope="1"):
+                        term = result.term
+                        if isinstance(term, Term):
+                            yield _build_term_to_rule(term[2])
