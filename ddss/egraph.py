@@ -186,7 +186,7 @@ class Search:
                 result.add(candidate)
         return result
 
-    def _group_by_equivalence_class(self, terms: set[Term]) -> typing.Iterator[set[Term]]:
+    def _group_by_equivalence_class(self, terms: set[Term]) -> typing.Iterable[set[Term]]:
         if not terms:
             return []
 
