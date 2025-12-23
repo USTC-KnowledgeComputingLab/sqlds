@@ -132,15 +132,32 @@ async def test_egg_substitution_fx_with_xy(temp_db):
 
 @pytest.mark.asyncio
 async def test_egg_substitution_fx_xyz(temp_db):
-    """Test substitution chain: given x=y, y=z, f(x), expect f(z) can be satisfied."""
+    """Test comprehensive combination: symmetry, transitivity, congruence, and substitution.
+
+    Given:
+    - a=b (fact)
+    - b=c (fact)
+    - f(a) (fact)
+
+    Should derive:
+    - b=a (via symmetry from a=b)
+    - a=c (via transitivity from a=b, b=c)
+    - f(b)=f(c) (via congruence from b=c)
+    - f(c) (via substitution: f(a) and a=c)
+    """
     addr, engine, session = temp_db
 
-    # Add facts x=y, y=z, f(x), then idea f(z)
+    # Add facts a=b, b=c, f(a)
+    # Add ideas for b=a (symmetry), a=c (transitivity), f(b)=f(c) (congruence), f(c) (substitution)
     async with session() as sess:
-        sess.add(Facts(data="----\n(binary == x y)\n"))
-        sess.add(Facts(data="----\n(binary == y z)\n"))
-        sess.add(Facts(data="----\n(unary f x)\n"))
-        sess.add(Ideas(data="----\n(unary f z)\n"))
+        sess.add(Facts(data="----\n(binary == a b)\n"))
+        sess.add(Facts(data="----\n(binary == b c)\n"))
+        sess.add(Facts(data="----\n(unary f a)\n"))
+        # Ideas to test
+        sess.add(Ideas(data="----\n(binary == b a)\n"))  # symmetry
+        sess.add(Ideas(data="----\n(binary == a c)\n"))  # transitivity
+        sess.add(Ideas(data="----\n(binary == (unary f b) (unary f c))\n"))  # congruence
+        sess.add(Ideas(data="----\n(unary f c)\n"))  # substitution
         await sess.commit()
 
     # Run the main function
@@ -152,11 +169,18 @@ async def test_egg_substitution_fx_xyz(temp_db):
     except asyncio.CancelledError:
         pass
 
-    # Verify that f(z) was produced
+    # Verify that all expected facts were produced
     async with session() as sess:
         facts = await sess.scalars(select(Facts))
         fact_data = [f.data for f in facts.all()]
-        assert "----\n(unary f z)\n" in fact_data
+        # Test symmetry: a=b should derive b=a
+        assert "----\n(binary == b a)\n" in fact_data
+        # Test transitivity: a=b, b=c should derive a=c
+        assert "----\n(binary == a c)\n" in fact_data
+        # Test congruence: b=c should derive f(b)=f(c)
+        assert "----\n(binary == (unary f b) (unary f c))\n" in fact_data
+        # Test substitution: f(a) and a=c should derive f(c)
+        assert "----\n(unary f c)\n" in fact_data
 
 
 @pytest.mark.asyncio
