@@ -133,12 +133,12 @@ async def test_egg_substitution_fx_with_xy(temp_db):
 @pytest.mark.asyncio
 async def test_egg_substitution_fx_xyz(temp_db):
     """Test comprehensive combination: symmetry, transitivity, congruence, and substitution.
-    
+
     Given:
     - a=b (fact)
     - b=c (fact)
     - f(a) (fact)
-    
+
     Should derive:
     - b=a (via symmetry from a=b)
     - a=c (via transitivity from a=b, b=c)
