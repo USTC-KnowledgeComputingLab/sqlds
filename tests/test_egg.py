@@ -198,3 +198,168 @@ async def test_egg_cancellation(temp_db):
         await task
     except asyncio.CancelledError:
         pass
+
+
+# Variable-based tests
+@pytest.mark.asyncio
+async def test_egg_symmetry_with_variables(temp_db):
+    """Test symmetry with variables: given a(`x)=b(`x) and idea b(t)=a(t), should produce b(t)=a(t)."""
+    addr, engine, session = temp_db
+
+    # Add fact a(`x)=b(`x) with variable
+    async with session() as sess:
+        sess.add(Facts(data="----\n(binary == (unary a `x) (unary b `x))\n"))
+        sess.add(Ideas(data="----\n(binary == (unary b t) (unary a t))\n"))
+        await sess.commit()
+
+    # Run the main function with a timeout
+    task = asyncio.create_task(main(addr, engine, session))
+    await asyncio.sleep(0.3)
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+    # Verify that fact b(t)=a(t) was produced
+    async with session() as sess:
+        facts = await sess.scalars(select(Facts))
+        fact_data = [f.data for f in facts.all()]
+        assert "----\n(binary == (unary b t) (unary a t))\n" in fact_data
+
+
+@pytest.mark.asyncio
+async def test_egg_transitivity_with_variables(temp_db):
+    """Test transitivity with variables: given a(`x)=b(`x), b(`x)=c(`x), should produce a(t)=c(t)."""
+    addr, engine, session = temp_db
+
+    # Add facts a(`x)=b(`x) and b(`x)=c(`x)
+    async with session() as sess:
+        sess.add(Facts(data="----\n(binary == (unary a `x) (unary b `x))\n"))
+        sess.add(Facts(data="----\n(binary == (unary b `x) (unary c `x))\n"))
+        sess.add(Ideas(data="----\n(binary == (unary a t) (unary c t))\n"))
+        await sess.commit()
+
+    # Run the main function
+    task = asyncio.create_task(main(addr, engine, session))
+    await asyncio.sleep(0.3)
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+    # Verify that fact a(t)=c(t) was produced
+    async with session() as sess:
+        facts = await sess.scalars(select(Facts))
+        fact_data = [f.data for f in facts.all()]
+        assert "----\n(binary == (unary a t) (unary c t))\n" in fact_data
+
+
+@pytest.mark.asyncio
+async def test_egg_congruence_with_variables(temp_db):
+    """Test congruence with variables: given x=y, expect f(`z, x)=f(`z, y)."""
+    addr, engine, session = temp_db
+
+    # Add fact x=y and idea f(`z, x)=f(`z, y)
+    async with session() as sess:
+        sess.add(Facts(data="----\n(binary == x y)\n"))
+        sess.add(Ideas(data="----\n(binary == (binary f `z x) (binary f `z y))\n"))
+        await sess.commit()
+
+    # Run the main function
+    task = asyncio.create_task(main(addr, engine, session))
+    await asyncio.sleep(0.3)
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+    # Verify that fact was produced
+    async with session() as sess:
+        facts = await sess.scalars(select(Facts))
+        fact_data = [f.data for f in facts.all()]
+        assert "----\n(binary == (binary f `z x) (binary f `z y))\n" in fact_data
+
+
+@pytest.mark.asyncio
+async def test_egg_substitution_with_variables(temp_db):
+    """Test substitution with variables: given f(`x) and x=y, expect f(y) can be satisfied."""
+    addr, engine, session = temp_db
+
+    # Add fact f(`x) and x=y, then idea f(y)
+    async with session() as sess:
+        sess.add(Facts(data="----\n(unary f `x)\n"))
+        sess.add(Facts(data="----\n(binary == x y)\n"))
+        sess.add(Ideas(data="----\n(unary f y)\n"))
+        await sess.commit()
+
+    # Run the main function
+    task = asyncio.create_task(main(addr, engine, session))
+    await asyncio.sleep(0.3)
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+    # Verify that the idea was satisfied
+    async with session() as sess:
+        facts = await sess.scalars(select(Facts))
+        fact_data = [f.data for f in facts.all()]
+        assert "----\n(unary f y)\n" in fact_data
+
+
+@pytest.mark.asyncio
+async def test_egg_complex_situation_with_variables(temp_db):
+    """Test comprehensive combination with variables.
+
+    Given:
+    - a(`x)=b(`x) (fact with variable)
+    - b(`x)=c(`x) (fact with same variable)
+    - f(a) (fact)
+
+    Should derive:
+    - b(t)=a(t) (via symmetry from a(`x)=b(`x))
+    - a(t)=c(t) (via transitivity from a(`x)=b(`x), b(`x)=c(`x))
+    - f(b)=f(c) (via congruence from b=c, which needs b=c as a separate fact)
+    - f(c) (via substitution: f(a) and a=c)
+    """
+    addr, engine, session = temp_db
+
+    # Add facts with variables and concrete facts for congruence
+    async with session() as sess:
+        sess.add(Facts(data="----\n(binary == (unary a `x) (unary b `x))\n"))
+        sess.add(Facts(data="----\n(binary == (unary b `x) (unary c `x))\n"))
+        sess.add(Facts(data="----\n(binary == a b)\n"))  # Also add concrete equality for congruence
+        sess.add(Facts(data="----\n(binary == b c)\n"))  # Also add concrete equality for congruence
+        sess.add(Facts(data="----\n(unary f a)\n"))
+        # Ideas to test
+        sess.add(Ideas(data="----\n(binary == (unary b t) (unary a t))\n"))  # symmetry
+        sess.add(Ideas(data="----\n(binary == (unary a t) (unary c t))\n"))  # transitivity
+        sess.add(Ideas(data="----\n(binary == (unary f b) (unary f c))\n"))  # congruence
+        sess.add(Ideas(data="----\n(unary f c)\n"))  # substitution
+        await sess.commit()
+
+    # Run the main function
+    task = asyncio.create_task(main(addr, engine, session))
+    await asyncio.sleep(0.3)
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+    # Verify that all expected facts were produced
+    async with session() as sess:
+        facts = await sess.scalars(select(Facts))
+        fact_data = [f.data for f in facts.all()]
+        # Test symmetry: a(`x)=b(`x) should derive b(t)=a(t)
+        assert "----\n(binary == (unary b t) (unary a t))\n" in fact_data
+        # Test transitivity: a(`x)=b(`x), b(`x)=c(`x) should derive a(t)=c(t)
+        assert "----\n(binary == (unary a t) (unary c t))\n" in fact_data
+        # Test congruence: b=c should derive f(b)=f(c)
+        assert "----\n(binary == (unary f b) (unary f c))\n" in fact_data
+        # Test substitution: f(a) and a=c should derive f(c)
+        assert "----\n(unary f c)\n" in fact_data
