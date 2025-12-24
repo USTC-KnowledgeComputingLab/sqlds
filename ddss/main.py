@@ -21,7 +21,7 @@ component_map = {
 }
 
 
-async def run(addr, components):
+async def run(addr: str, components: list[str]) -> None:
     engine, session = await initialize_database(addr)
 
     try:
