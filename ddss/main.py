@@ -1,6 +1,7 @@
 import asyncio
 import tempfile
 import pathlib
+import sys
 from typing import Annotated, Optional
 import tyro
 from .orm import initialize_database
@@ -36,6 +37,10 @@ sqlalchemy_driver = {
 }
 
 
+# Global to keep temporary directory alive during execution
+_tmpdir = None
+
+
 def cli():
     """DDSS - Distributed Deductive System Sorts
     
@@ -53,9 +58,11 @@ def cli():
         ] = None,
     ) -> None:
         """Start DDSS with the specified database address."""
+        # Use a global to keep the temporary directory alive
+        global _tmpdir
         if addr is None:
-            tmpdir = tempfile.TemporaryDirectory()
-            path = pathlib.Path(tmpdir.name) / "ddss.db"
+            _tmpdir = tempfile.TemporaryDirectory()
+            path = pathlib.Path(_tmpdir.name) / "ddss.db"
             addr = f"sqlite:///{path.as_posix()}"
         
         # Add driver suffix to database URL if needed
@@ -66,7 +73,7 @@ def cli():
                 break
         else:
             print(f"Unsupported database address: {addr}")
-            raise SystemExit(1)
+            sys.exit(1)
         
         print(f"addr: {addr}")
         asyncio.run(main(addr))
