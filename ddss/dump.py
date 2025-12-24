@@ -11,10 +11,8 @@ async def main(addr, engine=None, session=None):
 
     try:
         async with session() as sess:
-            # Output all ideas first
             for i in await sess.scalars(select(Ideas)):
                 print("idea:", unparse(i.data))
-            # Then output all facts
             for f in await sess.scalars(select(Facts)):
                 print("fact:", unparse(f.data))
     finally:
