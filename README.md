@@ -25,16 +25,6 @@ The system uses a database as the central hub, with two tables (`facts` and `ide
 - **DS** (`ddss/ds.py`): Forward-chaining deductive search engine
 - **Egg** (`ddss/egg.py`): E-graph based equality reasoning engine
 
-## Integrated Main
-
-DDSS provides an integrated main program that runs the Input, Output, DS, and Egg modules concurrently.
-
-**Data Flow**:
-1. User inputs facts through the Input module
-2. DS and Egg modules monitor the database and perform inference
-3. Newly derived facts are written back to the database
-4. Output module displays all new facts and ideas in real-time
-
 ## Installation
 
 ### Using uvx (Recommended)
