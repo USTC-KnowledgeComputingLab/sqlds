@@ -65,10 +65,7 @@ def main(
         ),
     ] = ["input", "output", "ds", "egg"],
 ) -> None:
-    """DDSS - Distributed Deductive System Sorts
-
-    Run DDSS with an interactive deductive environment.
-    """
+    """DDSS - Distributed Deductive System Sorts: Run DDSS with an interactive deductive environment."""
     if addr is None:
         tmpdir = tempfile.TemporaryDirectory()
         path = pathlib.Path(tmpdir.name) / "ddss.db"
@@ -88,7 +85,7 @@ def main(
 
 
 def cli():
-    tyro.cli(main)
+    tyro.cli(main, prog="ddss")
 
 
 if __name__ == "__main__":
