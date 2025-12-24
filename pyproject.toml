@@ -12,7 +12,7 @@ dependencies = [
     "apyds-egg~=0.0.11",
     "prompt-toolkit~=3.0.52",
     "sqlalchemy[aiosqlite,aiomysql,postgresql-asyncpg]~=2.0.45",
-    "tyro~=0.9.15",
+    "tyro~=1.0.3",
 ]
 
 [project.urls]
