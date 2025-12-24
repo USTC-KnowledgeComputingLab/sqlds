@@ -8,12 +8,16 @@ from .ds import main as ds
 from .egg import main as egg
 from .input import main as input
 from .output import main as output
+from .load import main as load
+from .dump import main as dump
 
 component_map = {
     "ds": ds,
     "egg": egg,
     "input": input,
     "output": output,
+    "load": load,
+    "dump": dump,
 }
 
 
