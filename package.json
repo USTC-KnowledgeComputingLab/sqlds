@@ -18,7 +18,7 @@
         "build": "rollup --config rollup.config.js"
     },
     "dependencies": {
-        "atsds": "^0.0.12",
+        "atsds": "^0.0.11",
         "atsds-bnf": "^0.0.12",
         "atsds-egg": "^0.0.12",
         "commander": "^14.0.2",
