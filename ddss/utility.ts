@@ -1,3 +1,4 @@
+import { format } from "node:util";
 import type { Interface } from "node:readline";
 import { stdout } from "node:process";
 
@@ -11,6 +12,8 @@ export function strRuleGetStrIdea(data: string): string | null {
 
 export function patchStdout(rl: Interface) {
     const originalWrite = stdout.write;
+    const originalLog = console.log;
+    const originalError = console.error;
     let isReprompting = false;
 
     // @ts-ignore
@@ -43,8 +46,17 @@ export function patchStdout(rl: Interface) {
         return originalWrite.call(stdout, chunk, encoding, callback);
     };
 
+    console.log = (...args: any[]) => {
+        stdout.write(format(...args) + "\n");
+    };
+    console.error = (...args: any[]) => {
+        stdout.write(format(...args) + "\n");
+    };
+
     return () => {
         // @ts-ignore
         stdout.write = originalWrite;
+        console.log = originalLog;
+        console.error = originalError;
     };
 }
