@@ -1,0 +1,47 @@
+name: Publish npm
+permissions:
+  contents: read
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  npm:
+    name: Build and upload
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/@hzhangxyz/ddss
+    permissions:
+      id-token: write
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: recovery tag information
+        run: git fetch --tags --force
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 'latest'
+          cache: 'npm'
+
+      - name: version
+        run: npm version from-git --no-git-tag-version
+
+      - name: extract tag
+        run: |
+          GIT_TAG=${GITHUB_REF#refs/tags/}
+          TAG=$(echo $GIT_TAG | sed -E 's/^v//' | sed -E 's/[0-9\.-]//g' | sed -E 's/^$/latest/g')
+          echo TAG=$TAG >> $GITHUB_ENV
+
+      - name: dependencies
+        run: npm ci
+
+      - name: build
+        run: npm run build
+
+      - name: publish
+        run: npm publish --tag $TAG --provenance
