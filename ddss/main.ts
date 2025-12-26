@@ -1,16 +1,14 @@
-import { Command } from "commander";
-import * as path from "node:path";
-import * as os from "node:os";
 import * as fs from "node:fs";
-import { initializeDatabase } from "./orm.js";
-import { main as ds } from "./ds.js";
-import { main as egg } from "./egg.js";
-import { main as input } from "./input.js";
-import { main as output } from "./output.js";
-import { main as load } from "./load.js";
-import { main as dump } from "./dump.js";
-
-import { fileURLToPath } from "node:url";
+import * as os from "node:os";
+import * as path from "node:path";
+import { Command } from "commander";
+import { main as ds } from "./ds.ts";
+import { main as dump } from "./dump.ts";
+import { main as egg } from "./egg.ts";
+import { main as input } from "./input.ts";
+import { main as load } from "./load.ts";
+import { main as output } from "./output.ts";
+import { initializeDatabase } from "./orm.ts";
 
 const componentMap: Record<string, any> = {
     ds,
@@ -22,7 +20,12 @@ const componentMap: Record<string, any> = {
 };
 
 async function run(addr: string, components: string[]) {
-    const sequelize = await initializeDatabase(addr);
+    let sequelizeAddr = addr;
+    if (addr.startsWith("sqlite:///")) {
+        sequelizeAddr = `sqlite:${addr.replace("sqlite:///", "")}`;
+    }
+
+    const sequelize = await initializeDatabase(sequelizeAddr);
 
     try {
         const promises = components.map((name) => {
@@ -34,11 +37,7 @@ async function run(addr: string, components: string[]) {
             return component(addr, sequelize);
         });
 
-        // Run all components in parallel.
-        // Note: Some components like input/output run forever.
         await Promise.all(promises);
-    } catch (err) {
-        // Handle error
     } finally {
         await sequelize.close();
     }

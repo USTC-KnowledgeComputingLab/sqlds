@@ -21,12 +21,7 @@ class Idea extends Model<InferAttributes<Idea>, InferCreationAttributes<Idea>> {
 export { Fact, Idea };
 
 export async function initializeDatabase(addr: string): Promise<Sequelize> {
-    let sequelizeAddr = addr;
-    if (addr.startsWith("sqlite:///")) {
-        sequelizeAddr = `sqlite:${addr.replace("sqlite:///", "")}`;
-    }
-
-    const sequelize = new Sequelize(sequelizeAddr, { logging: false });
+    const sequelize = new Sequelize(addr, { logging: false });
 
     Fact.init(
         {
