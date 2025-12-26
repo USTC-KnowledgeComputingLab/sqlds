@@ -61,7 +61,7 @@ export function cli() {
 
             if (addr.startsWith("sqlite://")) {
                 addr = addr.replace("sqlite:///", "sqlite:");
-            } else if (addr.startsWith("mysql:///")) {
+            } else if (addr.startsWith("mysql://")) {
                 // Nothing to change
             } else if (addr.startsWith("mariadb://")) {
                 // Nothing to change
