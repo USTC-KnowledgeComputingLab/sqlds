@@ -1,9 +1,9 @@
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
-import { parse } from "atsds-bnf";
-import { initializeDatabase, insertOrIgnore, Fact, Idea } from "./orm.js";
-import { strRuleGetStrIdea, patchStdout } from "./utility.js";
 import type { Sequelize } from "sequelize";
+import { parse } from "atsds-bnf";
+import { Fact, Idea, initializeDatabase, insertOrIgnore } from "./orm.ts";
+import { patchStdout, strRuleGetStrIdea } from "./utility.ts";
 
 export async function main(addr: string, sequelize?: Sequelize) {
     if (!sequelize) {
@@ -14,34 +14,30 @@ export async function main(addr: string, sequelize?: Sequelize) {
     rl.setPrompt("input: ");
     const unpatch = patchStdout(rl);
 
-    try {
-        rl.prompt(); // Initial prompt
+    rl.prompt();
 
-        for await (const line of rl) {
-            const data = line.trim();
-            if (data === "" || data.startsWith("//")) {
-                rl.prompt();
-                continue;
-            }
-
-            try {
-                const ds = parse(data);
-                const dsStr = ds.toString();
-
-                await insertOrIgnore(Fact, dsStr);
-                const idea = strRuleGetStrIdea(dsStr);
-                if (idea) {
-                    await insertOrIgnore(Idea, idea);
-                }
-            } catch (e) {
-                console.error(`error: ${e}`);
-            }
+    for await (const line of rl) {
+        const data = line.trim();
+        if (data === "" || data.startsWith("//")) {
             rl.prompt();
+            continue;
         }
-    } catch (err) {
-        // Silent catch for unexpected termination
-    } finally {
-        unpatch();
-        rl.close();
+
+        try {
+            const ds = parse(data);
+            const dsStr = ds.toString();
+
+            await insertOrIgnore(Fact, dsStr);
+            const idea = strRuleGetStrIdea(dsStr);
+            if (idea) {
+                await insertOrIgnore(Idea, idea);
+            }
+        } catch (e) {
+            console.error(`error: ${e}`);
+        }
+        rl.prompt();
     }
+
+    unpatch();
+    rl.close();
 }
