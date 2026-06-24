@@ -19,7 +19,7 @@ jobs:
     name: Build VitePress
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v6
         with:
@@ -33,7 +33,7 @@ jobs:
         run: npm run docs
 
       - name: upload
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: .vitepress/dist
 
